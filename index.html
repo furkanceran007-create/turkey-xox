@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v5.9</title>
+  <title>Turkey XoX v6.2</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -1725,8 +1725,13 @@ function subscribeRoom(code){
     if(newCell){
       setTimeout(()=>{animatedCellKey="";render();},820);
     }
-    if(room.status==="closed" && !room.host_id && !room.guest_id) msg("İki oyuncu da çıktı. Oda kapandı.","bad");
-    else if(!room.host_id || !room.guest_id) msg("Rakip odadan çıktı. Aynı kodla geri dönebilir.");
+    if(room.status==="closed" && !room.host_id && !room.guest_id){
+      if(channel){ sb.removeChannel(channel); channel=null; }
+      resetLocalUiAfterExit();
+      msg("Oda kapandı.","bad");
+      return;
+    }
+    else if(!room.host_id || !room.guest_id) msg("Rakip oyundan çıktı. Oda kapandı.","bad");
     else if(room.turn===mySide) msg("Sıra sende.","ok");
   }).subscribe();
 }
@@ -1818,8 +1823,79 @@ function isPlayerAlreadyUsed(player){
   return usedPlayerNames().has(norm(player.name));
 }
 
+async function submitGuessLocal(btn){
+  if(submitting)return;
+  if(!room)return msg("Oyun yok.","bad");
+  if(!dataReady)return msg("Veri hazır değil, bekle.","bad");
+  if(isMatchOver())return msg("Maç bitti. Yeni maç başlat.","bad");
+  if(room.winner)return msg("Raund bitti. Yeni tablo aç.","bad");
+  if(!selected)return msg("Önce kare seç.","bad");
+
+  const moveCell={r:selected.r,c:selected.c};
+  if(room.board[moveCell.r][moveCell.c])return msg("Bu kare dolu.","bad");
+
+  const name=document.getElementById("playerInput").value.trim();
+  if(!name)return msg("Oyuncu yaz.","bad");
+  if(!selectedPlayerName || norm(selectedPlayerName)!==norm(name) || !selectedPlayerObj){
+    return msg("Oyuncuyu açılır listeden seçmelisin.","bad");
+  }
+
+  submitting=true;
+  setBusy(btn,true,"Gönderiliyor");
+
+  const p=selectedPlayerObj;
+  const rowTeam=room.rows[moveCell.r];
+  const colTeam=room.cols[moveCell.c];
+  const ok=playerHasBothTeams(p,rowTeam,colTeam);
+
+  if(ok && isPlayerAlreadyUsed(p)){
+    submitting=false;
+    setBusy(btn,false);
+    msg("Bu oyuncu bu oyunda zaten kullanıldı. Başka oyuncu seç.","bad");
+    return;
+  }
+
+  const b=JSON.parse(JSON.stringify(room.board));
+  const next=room.turn==="X"?"O":"X";
+
+  if(ok){
+    b[moveCell.r][moveCell.c]={mark:room.turn,player:p.name};
+    const w=winner(b);
+    room.board=b;
+    if(w){
+      room.winner=w;
+      room.status="finished";
+      if(w==="X")room.score_x=(room.score_x||0)+1;
+      else room.score_o=(room.score_o||0)+1;
+    }else{
+      room.turn=next;
+    }
+    animatedCellKey=moveCell.r+"-"+moveCell.c;
+    msg("Doğru.","ok");
+  }else{
+    room.turn=next;
+    shakeCellKey=moveCell.r+"-"+moveCell.c;
+    msg("Yanlış. Sıra diğer oyuncuda.","bad");
+  }
+
+  mySide=room.turn;
+  selected=null;
+  selectedPlayerName="";
+  selectedPlayerObj=null;
+  if(document.getElementById("playerInput")) document.getElementById("playerInput").value="";
+  hideSuggest();
+  render();
+
+  if(animatedCellKey) setTimeout(()=>{animatedCellKey="";render();},820);
+  if(shakeCellKey) setTimeout(()=>{shakeCellKey="";render();},340);
+
+  submitting=false;
+  setBusy(btn,false);
+}
+
 async function submitGuess(){
   const btn = event?.currentTarget;
+  if(playMode==="local") return submitGuessLocal(btn);
   if(Date.now()-lastSuggestionPickAt<650){
     msg("Oyuncu seçildi. Hamle için butona tekrar bas.","ok");
     return;
@@ -2079,9 +2155,9 @@ function updateLiveBanner(){
 
   if(room.turn===mySide){
     banner.classList.add("my-turn");
-    title.textContent="Sıra sende";
-    sub.textContent="Hamleni yap veya pas geç.";
-    pill.textContent="Hamleni yap";
+    title.textContent=playMode==="local" ? ((room.turn==="X"?hostLabel():guestLabel())+" oynuyor") : "Sıra sende";
+    sub.textContent=playMode==="local" ? "" : "Hamleni yap veya pas geç.";
+    pill.textContent=playMode==="local" ? "Sıra" : "Hamleni yap";
     if(online) online.textContent="Sıra sende";
   }else{
     banner.classList.add("wait-turn");
@@ -2128,7 +2204,7 @@ function render(){
     else if(room.host_id&&room.guest_id){
       connected = room.turn===mySide ? "Sıra sende." : "Rakibin hamlesi bekleniyor.";
     }
-    else connected="Oyuncu bekleniyor. Aynı kodla tekrar girilebilir.";
+    else connected="Oyuncu bekleniyor.";
   }
   status(players.length?connected:"Veri hazırlanıyor...");
 
@@ -2174,14 +2250,31 @@ function render(){
     closeEndModal();
   }
 }
+function resetLocalUiAfterExit(){
+  room=null;
+  mySide=null;
+  selected=null;
+  if(playMode==="online"){ localStorage.removeItem("tx_last_room_code"); lastRoomCode=""; }
+  selectedPlayerName="";
+  selectedPlayerObj=null;
+  submitting=false;
+  animatedCellKey="";
+  shakeCellKey="";
+  lastShownWinnerKey="";
+  document.getElementById("playerInput").value="";
+  if(document.getElementById("joinCode")) document.getElementById("joinCode").value="";
+  hideSuggest();
+  closeEndModal();
+  document.getElementById("modeChoiceCard")?.classList.remove("room-panel-hidden");
+  document.getElementById("localSetup")?.classList.toggle("show", playMode==="local");
+  render();
+}
+
 async function leaveRoom(){
   const btn = event?.currentTarget;
   if(playMode==="local"){
-    room=null; mySide=null; selected=null;
-    document.getElementById("modeChoiceCard")?.classList.remove("room-panel-hidden");
-    document.getElementById("localSetup")?.classList.add("show");
-    render();
-    msg("Tek cihaz oyunundan çıktın.");
+    resetLocalUiAfterExit();
+    msg("Tek cihaz oyunu bitirildi.");
     return;
   }
   if(!room){
@@ -2201,23 +2294,28 @@ async function leaveRoom(){
       const r=fresh.data||room;
       const otherExists = isHost ? !!r.guest_id : !!r.host_id;
 
-      if(isHost){
+      if(isHost || isGuest){
         await sb.from("rooms").update({
           host_id:null,
-          status: otherExists ? "waiting" : "closed"
-        }).eq("room_code",code);
-      }else if(isGuest){
-        await sb.from("rooms").update({
           guest_id:null,
-          status: otherExists ? "waiting" : "closed"
+          status:"closed",
+          winner:null,
+          selected_side:null,
+          selected_row:null,
+          selected_col:null,
+          selected_at:null,
+          typing_side:null,
+          typing_at:null
         }).eq("room_code",code);
       }
     }
 
     if(channel) sb.removeChannel(channel);
-    room=null; mySide=null; selected=null;
-    render();
-    msg("Odadan çıktın. Aynı kodla tekrar girersen devam edebilirsin.");
+    channel=null;
+    localStorage.removeItem("tx_last_room_code");
+    lastRoomCode="";
+    resetLocalUiAfterExit();
+    msg("Odadan çıktın. Oyun kapatıldı.");
   }finally{
     setBusy(btn,false);
   }
