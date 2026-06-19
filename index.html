@@ -1,49 +1,592 @@
-<!doctype html><html lang="tr"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Turkey XoX Live - Online</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-body{background:#f1f5f9;color:#0f172a;font-family:system-ui,-apple-system,Segoe UI,sans-serif}.app{max-width:1050px;margin:auto;padding:16px 10px}.top{background:#0f172a;color:white;border-radius:22px;padding:18px;margin-bottom:14px}.cardx{background:white;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.grid{width:100%;border-collapse:separate;border-spacing:7px;table-layout:fixed}.grid th{height:52px;font-size:12px;text-align:center;color:#475569}.grid td{height:94px;border:2px dashed #cbd5e1;border-radius:16px;text-align:center;vertical-align:middle;cursor:pointer;position:relative;background:#f8fafc}.grid td.selected{border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.15)}.grid td.filled{border-style:solid;background:#fff;cursor:default}.count{position:absolute;right:7px;top:7px;background:#e2e8f0;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:800}.mark{font-size:30px;font-weight:900;display:block}.x{color:#2563eb}.o{color:#f59e0b}.pname{font-size:11px;font-weight:800;line-height:1.1;display:block}.msg{border:1px solid #e2e8f0;background:#fff;border-radius:14px;padding:12px;font-weight:650}.msg.ok{background:#ecfdf5;color:#065f46}.msg.bad{background:#fef2f2;color:#991b1b}.mode-btn.active,.diff-btn.active{background:#0f172a!important;color:white!important}.suggestions{display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 10px 22px rgba(15,23,42,.12);z-index:50;max-height:230px;overflow:auto}.suggestion{padding:10px 12px;border-bottom:1px solid #f1f5f9;font-weight:700;cursor:pointer}@media(max-width:650px){.grid{border-spacing:4px}.grid th{font-size:10px;height:44px}.grid td{height:75px}.mark{font-size:24px}.pname{font-size:9px}}
-</style></head><body><div class="app">
-<div class="top d-flex justify-content-between align-items-center gap-2 flex-wrap"><div><h1 class="h3 fw-bold mb-1">Turkey XoX</h1><div class="text-white-50 small">Canlı karşılıklı futbol grid</div></div><div class="badge text-bg-light text-dark rounded-pill px-3 py-2" id="dataBadge">Veri yükleniyor...</div></div>
-<div class="row g-3"><div class="col-lg-8">
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Turkey XoX">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Turkey XoX</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-<div class="cardx p-3 mb-3"><div class="d-flex flex-wrap gap-2 justify-content-between mb-3"><div class="btn-group"><button class="btn btn-outline-dark mode-btn active" data-mode="local" onclick="setMode('local')">Yerel</button><button class="btn btn-outline-dark mode-btn" data-mode="balanced" onclick="setMode('balanced')">Dengeli</button><button class="btn btn-outline-dark mode-btn" data-mode="europe" onclick="setMode('europe')">Avrupa</button></div><div class="btn-group"><button class="btn btn-outline-dark diff-btn active" data-difficulty="easy" onclick="setDifficulty('easy')">Kolay</button><button class="btn btn-outline-dark diff-btn" data-difficulty="medium" onclick="setDifficulty('medium')">Orta</button><button class="btn btn-outline-dark diff-btn" data-difficulty="hard" onclick="setDifficulty('hard')">Zor</button></div></div>
-<div class="row g-2 mb-3"><div class="col-6 col-md-3"><div class="p-2 border rounded-3"><small>Sıra</small><div class="fw-bold" id="turnText">-</div></div></div><div class="col-6 col-md-3"><div class="p-2 border rounded-3"><small>Sen</small><div class="fw-bold" id="sideText">-</div></div></div><div class="col-6 col-md-3"><div class="p-2 border rounded-3"><small>Oda</small><div class="fw-bold" id="roomText">-</div></div></div><div class="col-6 col-md-3"><div class="p-2 border rounded-3"><small>Skor</small><div class="fw-bold" id="scoreText">0 - 0</div></div></div></div><table class="grid" id="grid"></table></div>
-<div class="cardx p-3"><div class="row g-2 align-items-end"><div class="col position-relative"><label class="form-label fw-bold">Futbolcu adı</label><input class="form-control form-control-lg" id="playerInput" placeholder="Oyuncu yaz..." oninput="suggest()" autocomplete="off"><div id="suggestions" class="suggestions"></div></div><div class="col-auto"><button class="btn btn-primary btn-lg fw-bold" onclick="submitGuess()">Oyna</button></div></div><div class="msg mt-3" id="msg">Oda oluştur veya koda katıl.</div></div></div>
-<div class="col-lg-4"><div class="cardx p-3 mb-3"><h2 class="h5 fw-bold">Canlı Oyun</h2><button class="btn btn-primary w-100 fw-bold mb-2" onclick="createRoom()">Oda Oluştur</button><div class="input-group"><input class="form-control" id="joinCode" placeholder="Oda kodu"><button class="btn btn-dark fw-bold" onclick="joinRoom()">Katıl</button></div></div><div class="cardx p-3 mb-3"><button class="btn btn-outline-dark w-100 mb-2" onclick="shuffleBoard()">Eşleşmeleri Karıştır</button><button class="btn btn-outline-danger w-100" onclick="leaveRoom()">Odadan Çık</button></div><div class="cardx p-3"><h2 class="h6 fw-bold">Cevap Paneli</h2><button class="btn btn-sm btn-outline-secondary mb-2" onclick="toggleAnswers()">Aç/Kapat</button><div id="answersBox" style="display:none;max-height:280px;overflow:auto;font-size:13px"></div></div></div></div></div>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-base: #f1f5f9;
+      --surface: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-light: #e2e8f0;
+      --border-dark: #cbd5e1;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / .05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; min-height: 100%; overflow-x: hidden; touch-action: manipulation; }
+    body {
+      min-height: 100vh;
+      color: var(--text-main);
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-base);
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+    button, input, select, textarea { font-size: 16px !important; touch-action: manipulation; }
+    input { -webkit-text-size-adjust: 100%; }
+
+    .app { max-width: 1200px; margin: 0 auto; padding: 24px 16px 40px; }
+
+    .topbar {
+      background-color: #0f172a;
+      color: #ffffff;
+      border-radius: var(--radius-xl);
+      padding: 24px 32px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-logo {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-lg);
+      display: grid; place-items: center;
+      background: #1e293b;
+      border: 1px solid #334155;
+      font-size: 28px;
+      flex: 0 0 auto;
+    }
+    .brand-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+    .brand-subtitle { color: #94a3b8; font-size: 15px; margin-top: 4px; font-weight: 500; }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #1e293b; border: 1px solid #334155;
+      color: #e2e8f0; border-radius: 999px;
+      padding: 8px 16px; font-size: 13px; font-weight: 600;
+      white-space: nowrap;
+    }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px rgba(16,185,129,.2); }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 355px; gap: 24px; }
+    .glass-card, .side-card {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .game-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--border-light);
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+
+    .mode-control {
+      display: flex; gap: 4px; padding: 4px;
+      background: #f1f5f9; border-radius: 999px;
+      border: 1px solid var(--border-light);
+    }
+    .mode-btn {
+      border: 0; background: transparent; color: var(--text-muted);
+      font-weight: 600; font-size: 14px !important; padding: 8px 16px;
+      border-radius: 999px; transition: all .2s ease;
+    }
+    .mode-btn:hover { color: var(--text-main); }
+    .mode-btn.active { background: #ffffff; color: var(--text-main); box-shadow: var(--shadow-sm); }
+
+    .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 24px; }
+    .stat {
+      background: var(--surface); border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm);
+      min-width: 0;
+    }
+    .stat .label {
+      display: flex; align-items: center; gap: 6px; font-size: 12px; text-transform: uppercase;
+      letter-spacing: .5px; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;
+    }
+    .stat .value { font-size: 18px; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .board-section { padding: 0 24px 24px; }
+    .board-frame { background: var(--bg-base); border-radius: var(--radius-xl); padding: 12px; border: 1px solid var(--border-light); overflow: hidden; }
+    table.grid { width: 100%; border-collapse: separate; border-spacing: 12px; table-layout: fixed; }
+
+    .grid th, .grid td { border-radius: var(--radius-lg); text-align: center; vertical-align: middle; }
+    .grid th {
+      height: 64px; padding: 8px; background: transparent;
+      color: var(--text-muted); font-size: 14px; font-weight: 700; line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+    .grid td {
+      height: 120px; background: var(--surface); border: 1px solid var(--border-light);
+      position: relative; padding: 12px; box-shadow: var(--shadow-sm); transition: all .2s ease;
+    }
+    .grid td.empty { cursor: pointer; border: 2px dashed var(--border-dark); background: #f8fafc; box-shadow: none; }
+    .grid td.empty:hover { border-color: var(--primary); background: #eff6ff; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .grid td.selected { border-color: var(--primary); background: #eff6ff; border-style: solid; border-width: 2px; box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+
+    .plus {
+      width: 40px; height: 40px; border-radius: 50%; display: inline-grid; place-items: center;
+      background: #e2e8f0; color: #64748b; font-size: 24px; font-weight: 400; transition: all .2s ease;
+    }
+    .grid td.empty:hover .plus { background: var(--primary); color: #fff; }
+
+    .mark { display: block; font-size: 32px; font-weight: 900; line-height: 1; margin-bottom: 8px; }
+    .mark.x { color: var(--primary); }
+    .mark.o { color: var(--warning); }
+    .player-name {
+      display: block; font-size: 13px; line-height: 1.2; font-weight: 700;
+      color: var(--text-main); word-break: break-word;
+    }
+    .cell-tag {
+      position: absolute; right: 12px; top: 12px; background: #e2e8f0; color: #475569;
+      padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;
+    }
+
+    .play-panel { margin: 0 24px 24px; background: var(--bg-base); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 20px; }
+    .player-input {
+      border-radius: var(--radius-md); border: 1px solid var(--border-dark);
+      padding: 14px 16px; font-size: 16px !important; font-weight: 600; box-shadow: var(--shadow-sm);
+    }
+    .player-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37,99,235,.15); outline: none; }
+    .play-btn { border-radius: var(--radius-md); padding: 14px 24px; font-weight: 700; min-height: 54px; }
+
+    .suggestions {
+      display: none; position: absolute; z-index: 80; left: 0; right: 0; top: calc(100% + 4px);
+      background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg); overflow: hidden; max-height: 300px;
+    }
+    .suggestion { padding: 12px 16px; border-bottom: 1px solid var(--border-light); cursor: pointer; font-weight: 600; color: var(--text-main); transition: background .1s; }
+    .suggestion:last-child { border-bottom: none; }
+    .suggestion:hover, .suggestion.active { background: #f1f5f9; }
+
+    .message {
+      margin-top: 16px; border-radius: var(--radius-md); padding: 14px 16px;
+      border: 1px solid var(--border-light); background: #ffffff; color: var(--text-main);
+      font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    }
+    .message:before { content: "\F4A4"; font-family: "bootstrap-icons"; font-size: 18px; }
+    .message.ok { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+    .message.ok:before { content: "\F26A"; color: #10b981; }
+    .message.bad { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+    .message.bad:before { content: "\F335"; color: #ef4444; }
+
+    .sidebar { display: flex; flex-direction: column; gap: 24px; }
+    .side-card-header { padding: 20px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; }
+    .side-card-header h2 { font-size: 16px; font-weight: 800; margin: 0; color: var(--text-main); }
+    .side-card-body { padding: 20px; }
+    .room-code-box {
+      background:#f8fafc; border:1px solid var(--border-light); border-radius: var(--radius-md);
+      padding: 12px 14px; font-weight: 800; font-size: 20px; letter-spacing: 1px; text-align:center;
+    }
+
+    .toast-pro {
+      position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%);
+      background: #1e293b; color: #fff; border-radius: 999px; padding: 14px 24px;
+      font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg); display: none; z-index: 9999;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    }
+
+    @media (max-width: 680px) {
+      .app { padding: 12px 8px 24px; }
+      .topbar { padding: 18px 14px; border-radius: var(--radius-lg); margin-bottom: 14px; }
+      .brand-logo { width: 44px; height: 44px; font-size: 22px; border-radius: 14px; }
+      .brand-title { font-size: 22px; }
+      .brand-subtitle { font-size: 13px; }
+      .chip { padding: 7px 11px; font-size: 12px; }
+      .layout { gap: 14px; }
+      .game-header { padding: 14px; gap: 10px; }
+      .mode-control { width: 100%; }
+      .mode-btn { flex: 1; text-align: center; padding: 8px 10px; font-size: 13px !important; }
+      .stat-strip { grid-template-columns: 1fr 1fr; padding: 14px; gap: 10px; }
+      .stat { padding: 12px; border-radius: 14px; }
+      .stat .label { font-size: 10px; margin-bottom: 6px; }
+      .stat .value { font-size: 15px; }
+      .board-section { padding: 0 10px 10px; }
+      .board-frame { padding: 5px; border-radius: 16px; }
+      table.grid { border-spacing: 4px; }
+      .grid th { font-size: 10px; height: 42px; padding: 3px; border-radius: 10px; }
+      .grid td { height: 74px; padding: 4px; border-radius: 12px; }
+      .plus { width: 30px; height: 30px; font-size: 18px; }
+      .cell-tag { right: 4px; top: 4px; font-size: 9px; padding: 1px 5px; }
+      .mark { font-size: 22px; margin-bottom: 4px; }
+      .player-name { font-size: 9px; line-height: 1.05; }
+      .play-panel { margin: 0 10px 10px; padding: 14px; border-radius: 14px; }
+      .play-btn { width: 100%; min-height: 52px; }
+      .sidebar { display: flex; gap: 14px; }
+      .side-card-header { padding: 14px; }
+      .side-card-body { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="topbar">
+      <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+        <div class="d-flex align-items-center gap-3">
+          <div class="brand-logo">⚽</div>
+          <div>
+            <h1 class="brand-title">Turkey XoX</h1>
+            <div class="brand-subtitle">Canlı karşılıklı futbol grid</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <div class="chip"><span class="pulse"></span><span id="dataBadge">Veri hazırlanıyor...</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <main class="glass-card">
+        <div class="game-header">
+          <div class="mode-control">
+            <button class="mode-btn active" data-mode="local" onclick="setMode('local')">Yerel</button>
+            <button class="mode-btn" data-mode="balanced" onclick="setMode('balanced')">Dengeli</button>
+            <button class="mode-btn" data-mode="europe" onclick="setMode('europe')">Avrupa</button>
+          </div>
+          <div class="mode-control difficulty-control">
+            <button class="mode-btn active" data-difficulty="easy" onclick="setDifficulty('easy')">Kolay</button>
+            <button class="mode-btn" data-difficulty="medium" onclick="setDifficulty('medium')">Orta</button>
+            <button class="mode-btn" data-difficulty="hard" onclick="setDifficulty('hard')">Zor</button>
+          </div>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat"><div class="label"><i class="bi bi-controller"></i> Sıra</div><div class="value" id="turnText">-</div></div>
+          <div class="stat"><div class="label"><i class="bi bi-person"></i> Sen</div><div class="value" id="sideText">-</div></div>
+          <div class="stat"><div class="label"><i class="bi bi-door-open"></i> Oda</div><div class="value" id="roomText">-</div></div>
+          <div class="stat"><div class="label"><i class="bi bi-trophy"></i> Skor</div><div class="value" id="scoreText">0 - 0</div></div>
+        </div>
+
+        <div class="board-section"><div class="board-frame"><table class="grid" id="grid"></table></div></div>
+
+        <div class="play-panel">
+          <div class="row g-3 align-items-end mb-3">
+            <div class="col-12 col-md">
+              <label class="form-label text-muted fw-bold mb-2">FUTBOLCU ADI</label>
+              <div class="input-wrap position-relative">
+                <input class="form-control player-input w-100" id="playerInput" placeholder="Oyuncu adını yazmaya başla..." autocomplete="off" oninput="suggest()" onkeydown="handleKey(event)" onblur="setTimeout(hideSuggest,180)">
+                <div id="suggestions" class="suggestions w-100"></div>
+              </div>
+            </div>
+            <div class="col-12 col-md-auto">
+              <button class="btn btn-primary play-btn w-100" onclick="submitGuess()"><i class="bi bi-check2-circle me-2"></i>Hamle Yap</button>
+            </div>
+          </div>
+          <div id="msg" class="message">Oda oluştur veya koda katıl.</div>
+
+          <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+            <button class="btn btn-dark fw-bold rounded-pill px-4" onclick="shuffleBoard()"><i class="bi bi-shuffle me-1"></i> Karıştır</button>
+            <button class="btn btn-outline-secondary fw-bold rounded-pill px-4" onclick="newRound()"><i class="bi bi-arrow-repeat me-1"></i> Yeni Tablo</button>
+            <button class="btn btn-outline-danger fw-bold rounded-pill px-3 ms-auto" onclick="leaveRoom()"><i class="bi bi-box-arrow-right me-1"></i> Çık</button>
+          </div>
+        </div>
+      </main>
+
+      <aside class="sidebar">
+        <section class="side-card">
+          <div class="side-card-header">
+            <h2><i class="bi bi-wifi me-2"></i>Canlı Oyun</h2>
+          </div>
+          <div class="side-card-body">
+            <button class="btn btn-primary w-100 fw-bold mb-3" onclick="createRoom()">Oda Oluştur</button>
+            <div class="input-group mb-3">
+              <input class="form-control" id="joinCode" placeholder="Oda kodu" inputmode="numeric" pattern="[0-9]*" maxlength="6">
+              <button class="btn btn-dark fw-bold" onclick="joinRoom()">Katıl</button>
+            </div>
+            <div class="room-code-box" id="roomCodeBox">------</div>
+          </div>
+        </section>
+
+        <section class="side-card">
+          <div class="side-card-header">
+            <h2><i class="bi bi-info-circle me-2"></i>Durum</h2>
+          </div>
+          <div class="side-card-body">
+            <div class="small text-muted fw-semibold" id="statusText">Veri hazırlanıyor...</div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <div id="toast" class="toast-pro"></div>
+
 <script>
 const SUPABASE_URL="https://rqaiqaglttvmtiqtvlcj.supabase.co";
 const SUPABASE_KEY="sb_publishable_KYfl4P83lfv9ltr-1QmIXw_wQfsP-GM";
-let sb=null,players=[],allTeams=[],teamFreq=new Map(),playerByNorm=new Map(),pairMap=new Map(),mode="balanced",difficulty="easy",room=null,channel=null,myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(),mySide=null,selected=null;
-localStorage.setItem("tx_player_id",myId);
 const DATA_FILE="turkiye_grid_data_optimized.json";
+
+let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), pairMap=new Map();
+let mode="local", difficulty="easy", room=null, channel=null, selected=null;
+let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null;
+let lastBoardSignature="";
+localStorage.setItem("tx_player_id",myId);
+
 const localTeamsBase=new Set(["Galatasaray","Fenerbahçe","Beşiktaş","Trabzonspor","Başakşehir","Sivasspor","Kayserispor","Konyaspor","Gençlerbirliği","Ankaragücü","Bursaspor","Rizespor","Antalyaspor","Alanyaspor","Adana Demirspor","Gaziantepspor","Gaziantep FK","Göztepe","Altay","Samsunspor","Kocaelispor","Sakaryaspor","Eskişehirspor","Denizlispor","Manisaspor","Akhisarspor","Karabükspor","İstanbulspor","Mersin İdman Yurdu","Orduspor","Yeni Malatyaspor","Hatayspor","Boluspor","Bandırmaspor","Ümraniyespor","Eyüpspor","Erzurumspor","Elazığspor","Adanaspor","Kasımpaşa","Osmanlıspor","İstanbul BB"]);
-const euroTeamsBase=new Set(["Real Madrid","Barcelona","Atletico Madrid","Sevilla","Valencia","Villarreal","Manchester United","Manchester City","Chelsea","Arsenal","Liverpool","Tottenham","Newcastle United","Inter","AC Milan","Juventus","Roma","Napoli","Lazio","Fiorentina","PSG","Lyon","Marseille","Monaco","Lille","Bayern Münih","Bayern Munich","Dortmund","Ajax","PSV","Feyenoord","Porto","Benfica","Sporting","Braga","Olympiacos","Panathinaikos","Celtic","Rangers"]);
-const knownExtraTeamsBase=new Set(["Boca Juniors","River Plate","Santos","Flamengo","Palmeiras","Corinthians","LA Galaxy","Inter Miami","Al Nassr","Al Hilal","Shakhtar Donetsk","Zenit","Bayer Leverkusen","Leicester City","Everton","West Ham","Aston Villa","Real Betis","Atalanta","Nice","Rennes"]);
-function norm(s){return(s||"").toLocaleLowerCase("tr-TR").replaceAll("ı","i").replaceAll("İ","i").replaceAll("ş","s").replaceAll("ğ","g").replaceAll("ü","u").replaceAll("ö","o").replaceAll("ç","c").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim()}
+const euroTeamsBase=new Set(["Real Madrid","Barcelona","Atletico Madrid","Sevilla","Valencia","Villarreal","Manchester United","Manchester City","Chelsea","Arsenal","Liverpool","Tottenham","Newcastle United","Inter","AC Milan","Juventus","Roma","Napoli","Lazio","Fiorentina","PSG","Lyon","Marseille","Monaco","Lille","Bayern Münih","Bayern Munich","Dortmund","RB Leipzig","Schalke 04","Werder Bremen","Wolfsburg","Ajax","PSV","Feyenoord","Porto","Benfica","Sporting","Braga","Olympiacos","Panathinaikos","AEK Athens","Celtic","Rangers"]);
+const knownExtraTeamsBase=new Set(["Boca Juniors","River Plate","Santos","Flamengo","Palmeiras","Corinthians","Sao Paulo","Gremio","Cruzeiro","Vasco da Gama","Fluminense","Internacional","Atletico Mineiro","Botafogo","LA Galaxy","Inter Miami","Al Nassr","Al Hilal","Al Ahli","Al Ittihad","Shakhtar Donetsk","Dynamo Kyiv","Zenit","CSKA Moskova","Spartak Moskova","Anderlecht","Club Brugge","Basel","Young Boys","Dinamo Zagreb","Red Star","Partizan","Bayer Leverkusen","Leicester City","Everton","West Ham","Aston Villa","Real Betis","Real Sociedad","Atalanta","Nice","Rennes","Bordeaux"]);
+
+function norm(s){return(s||"").toLocaleLowerCase("tr-TR").replaceAll("ı","i").replaceAll("İ","i").replaceAll("ş","s").replaceAll("ğ","g").replaceAll("ü","u").replaceAll("ö","o").replaceAll("ç","c").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();}
 function pairKey(a,b){return[a,b].sort((x,y)=>x.localeCompare(y,"tr")).join("|||")}
-function msg(t,type=""){let e=document.getElementById("msg");e.textContent=t;e.className="msg mt-3 "+type}
+function msg(t,type=""){const el=document.getElementById("msg");el.textContent=t;el.className="message "+type}
+function status(t){document.getElementById("statusText").textContent=t}
+function toast(t){const el=document.getElementById("toast");el.textContent=t;el.style.display="block";setTimeout(()=>el.style.display="none",1600)}
+function hideSuggest(){document.getElementById("suggestions").style.display="none"}
+
 function initSupabase(){
-  if(!SUPABASE_URL || !SUPABASE_KEY || SUPABASE_KEY.includes("BURAYA_")){
-    sb=null;
-    msg("Supabase publishable key HTML içine eklenmeli.","bad");
-    return;
+  if(!SUPABASE_URL||!SUPABASE_KEY||SUPABASE_KEY.includes("BURAYA_")){
+    sb=null; msg("Supabase publishable key index.html içine eklenmeli.","bad"); return;
   }
   sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 }
-async function loadData(){try{let r=await fetch(DATA_FILE),a=await r.json();players=sanitize(a);buildIndex();dataBadge.textContent=players.length.toLocaleString("tr-TR")+" oyuncu";msg("Veri hazır.","ok");render()}catch(e){msg("JSON aynı klasörde olmalı: "+DATA_FILE,"bad")}}function sanitize(a){let m=new Map();for(let it of a){if(!it||!it.name||!Array.isArray(it.teams))continue;let name=String(it.name).trim(),k=norm(name);if(!k||["nan","none","null","undefined"].includes(k))continue;if(!m.has(k))m.set(k,{name,teams:[]});let o=m.get(k);for(let raw of it.teams){let t=String(raw||"").trim(),b=norm(t);if(!t||["nan","none","null","undefined","retired","without club","unknown","career break","free transfer"].includes(b))continue;if(!o.teams.includes(t))o.teams.push(t)}}return[...m.values()].filter(p=>p.teams.length)}
-function buildIndex(){allTeams=[...new Set(players.flatMap(p=>p.teams))];teamFreq=new Map();playerByNorm=new Map();pairMap=new Map();for(let p of players){playerByNorm.set(norm(p.name),p);for(let t of p.teams)teamFreq.set(t,(teamFreq.get(t)||0)+1);let ts=[...new Set(p.teams)];for(let i=0;i<ts.length;i++)for(let j=i+1;j<ts.length;j++){let k=pairKey(ts[i],ts[j]);if(!pairMap.has(k))pairMap.set(k,[]);pairMap.get(k).push(p)}}}
-function answers(a,b){return pairMap.get(pairKey(a,b))||[]}function teamCount(t){return teamFreq.get(t)||0}function sample(a,n,u=new Set()){let o=[],g=0;while(o.length<n&&g<n*120){let x=a[Math.floor(Math.random()*a.length)];if(x&&!u.has(x)&&!o.includes(x))o.push(x);g++}return o}function target(){return difficulty==="easy"?{min:7,max:220}:difficulty==="medium"?{min:3,max:80}:{min:1,max:28}}function validPair(a,b){let n=answers(a,b).length,r=target();return n>=r.min&&n<=r.max}function validGrid(r,c){if(new Set([...r,...c]).size!==6)return false;for(let x of r)for(let y of c)if(!validPair(x,y))return false;return true}
-function allowedTeams(){let l=[],e=[],k=[];for(let t of allTeams){let c=teamCount(t);if(localTeamsBase.has(t))l.push(t);else if(euroTeamsBase.has(t))e.push(t);else if(knownExtraTeamsBase.has(t)&&c>=6)k.push(t)}if(mode==="local")return[...new Set([...l,...e.filter(t=>teamCount(t)>=10),...k])];if(mode==="balanced")return[...new Set([...l,...e,...k])];return[...new Set([...e,...k,...l.filter(t=>teamCount(t)>=12)])]}function makeBoard(){let cand=allowedTeams();for(let z=0;z<5000;z++){let p=[],u=new Set();if(mode==="local"){let l=sample(cand.filter(t=>localTeamsBase.has(t)),4,u);l.forEach(x=>u.add(x));p=[...l,...sample(cand,2,u)]}else if(mode==="balanced"){let l=sample(cand.filter(t=>localTeamsBase.has(t)),3,u);l.forEach(x=>u.add(x));let e=sample(cand.filter(t=>euroTeamsBase.has(t)),2,u);e.forEach(x=>u.add(x));p=[...l,...e,...sample(cand,1,u)]}else{let e=sample(cand.filter(t=>euroTeamsBase.has(t)),4,u);e.forEach(x=>u.add(x));p=[...e,...sample(cand,2,u)]}if(p.length<6)continue;p=p.sort(()=>Math.random()-.5);let rows=p.slice(0,3),cols=p.slice(3,6);if(validGrid(rows,cols))return{rows,cols}}return{rows:["Galatasaray","Fenerbahçe","Beşiktaş"],cols:["Trabzonspor","Inter","Real Madrid"]}}
-function roomCode(){return Math.floor(100000+Math.random()*900000).toString()}async function createRoom(){if(!sb)return msg("Canlı bağlantı hazır değil.","bad");let code=roomCode(),b=makeBoard(),obj={room_code:code,host_id:myId,status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0};let{data,error}=await sb.from("rooms").insert(obj).select().single();if(error)return msg(error.message,"bad");room=data;mySide="X";subscribeRoom(code);msg("Oda kodu: "+code,"ok");render()}
-async function joinRoom(){if(!sb)return msg("Canlı bağlantı hazır değil.","bad");let code=joinCode.value.trim(),q=await sb.from("rooms").select("*").eq("room_code",code).single();if(q.error)return msg("Oda bulunamadı.","bad");let u=await sb.from("rooms").update({guest_id:myId,status:"playing"}).eq("room_code",code).select().single();if(u.error)return msg(u.error.message,"bad");room=u.data;mySide="O";subscribeRoom(code);msg("Odaya katıldın.","ok");render()}
-function subscribeRoom(code){if(channel)sb.removeChannel(channel);channel=sb.channel("room-"+code).on("postgres_changes",{event:"UPDATE",schema:"public",table:"rooms",filter:"room_code=eq."+code},p=>{room=p.new;render()}).subscribe()}async function updateRoom(f){let r=await sb.from("rooms").update(f).eq("room_code",room.room_code).select().single();if(r.error)return msg(r.error.message,"bad");room=r.data;render()}async function shuffleBoard(){if(!room||mySide!=="X")return msg("Sadece oda sahibi karıştırabilir.","bad");let b=makeBoard();await updateRoom({rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",winner:null,mode,difficulty})}
-function winner(b){let L=[[[0,0],[0,1],[0,2]],[[1,0],[1,1],[1,2]],[[2,0],[2,1],[2,2]],[[0,0],[1,0],[2,0]],[[0,1],[1,1],[2,1]],[[0,2],[1,2],[2,2]],[[0,0],[1,1],[2,2]],[[0,2],[1,1],[2,0]]];for(let l of L){let m=l.map(([r,c])=>b[r][c]?.mark);if(m[0]&&m.every(x=>x===m[0]))return m[0]}return null}
-async function submitGuess(){if(!room)return msg("Oda yok.","bad");if(room.turn!==mySide)return msg("Sıra sende değil.","bad");if(!selected)return msg("Kare seç.","bad");let name=playerInput.value.trim();if(!name)return msg("Oyuncu yaz.","bad");let p=playerByNorm.get(norm(name)),ans=answers(room.rows[selected.r],room.cols[selected.c]),ok=p&&ans.some(x=>norm(x.name)===norm(p.name));let b=room.board,next=mySide==="X"?"O":"X",f={turn:next};if(ok){b[selected.r][selected.c]={mark:mySide,player:p.name};let w=winner(b);f.board=b;if(w){f.winner=w;f.status="finished";if(w==="X")f.score_x=(room.score_x||0)+1;else f.score_o=(room.score_o||0)+1}msg("Doğru.","ok")}else msg("Yanlış. Sıra geçti.","bad");await sb.from("moves").insert({room_code:room.room_code,player_side:mySide,row_index:selected.r,col_index:selected.c,player_name:name,is_correct:!!ok});selected=null;playerInput.value="";await updateRoom(f)}
-function selectCell(r,c){if(!room||room.board[r][c])return;selected={r,c};render()}function setMode(m){mode=m;document.querySelectorAll(".mode-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===m))}function setDifficulty(d){difficulty=d;document.querySelectorAll(".diff-btn").forEach(b=>b.classList.toggle("active",b.dataset.difficulty===d))}
-function suggest(){let q=norm(playerInput.value),box=suggestions;if(q.length<2){box.style.display="none";return}let list=[];for(let p of players){let n=norm(p.name);if(n.includes(q)){list.push(p);if(list.length>=10)break}}box.innerHTML=list.map(p=>`<div class="suggestion" onclick="pick('${p.name.replaceAll("'","\\'")}')">${p.name}</div>`).join("");box.style.display=list.length?"block":"none"}function pick(n){playerInput.value=n;suggestions.style.display="none"}
-function render(){let r=room?.rows||["-","-","-"],c=room?.cols||["-","-","-"],b=room?.board||[[null,null,null],[null,null,null],[null,null,null]];roomText.textContent=room?.room_code||"-";sideText.textContent=mySide||"-";turnText.textContent=room?.winner?("Kazanan "+room.winner):(room?.turn||"-");scoreText.textContent=(room?.score_x||0)+" - "+(room?.score_o||0);let h="<tr><th></th>"+c.map(x=>`<th>${x}</th>`).join("")+"</tr>";for(let i=0;i<3;i++){h+=`<tr><th>${r[i]}</th>`;for(let j=0;j<3;j++){let cell=b[i][j],cnt=answers(r[i],c[j]).length;if(cell)h+=`<td class="filled"><span class="mark ${cell.mark.toLowerCase()}">${cell.mark}</span><span class="pname">${cell.player}</span></td>`;else h+=`<td onclick="selectCell(${i},${j})" class="${selected&&selected.r===i&&selected.c===j?'selected':''}"><span class="count">${cnt}</span>+</td>`}h+="</tr>"}grid.innerHTML=h;updateAnswers()}function updateAnswers(){if(!room)return;let out="";for(let r=0;r<3;r++)for(let c=0;c<3;c++)out+=`<div class="border-bottom py-2"><b>${room.rows[r]} + ${room.cols[c]}</b><br>${answers(room.rows[r],room.cols[c]).slice(0,12).map(p=>p.name).join(", ")}</div>`;answersBox.innerHTML=out}function toggleAnswers(){answersBox.style.display=answersBox.style.display==="none"?"block":"none"}function leaveRoom(){room=null;mySide=null;if(channel)sb.removeChannel(channel);render();msg("Odadan çıktın.")}
-initSupabase();loadData();
-</script></body></html>
+
+async function loadData(){
+  try{
+    status("Veri yükleniyor...");
+    const res=await fetch(DATA_FILE+"?v=3");
+    const arr=await res.json();
+    players=sanitize(arr);
+    buildIndex();
+    document.getElementById("dataBadge").textContent=players.length.toLocaleString("tr-TR")+" oyuncu";
+    status("Veri hazır.");
+    render();
+  }catch(e){
+    msg("Veri dosyası okunamadı: "+DATA_FILE,"bad");
+    status("Veri yüklenemedi.");
+  }
+}
+function sanitize(arr){
+  const map=new Map();
+  for(const item of arr){
+    if(!item||!item.name||!Array.isArray(item.teams))continue;
+    const name=String(item.name).trim(),key=norm(name);
+    if(!key||["nan","none","null","undefined"].includes(key))continue;
+    if(!map.has(key))map.set(key,{name,teams:[]});
+    const obj=map.get(key);
+    for(const raw of item.teams){
+      const t=String(raw||"").trim(),bad=norm(t);
+      if(!t||["nan","none","null","undefined","retired","without club","unknown","career break","free transfer"].includes(bad))continue;
+      if(!obj.teams.includes(t))obj.teams.push(t);
+    }
+  }
+  return[...map.values()].filter(p=>p.teams.length);
+}
+function buildIndex(){
+  allTeams=[...new Set(players.flatMap(p=>p.teams))];
+  teamFreq=new Map(); playerByNorm=new Map(); pairMap=new Map();
+  for(const p of players){
+    playerByNorm.set(norm(p.name),p);
+    for(const t of p.teams)teamFreq.set(t,(teamFreq.get(t)||0)+1);
+    const ts=[...new Set(p.teams)];
+    for(let i=0;i<ts.length;i++)for(let j=i+1;j<ts.length;j++){
+      const k=pairKey(ts[i],ts[j]);
+      if(!pairMap.has(k))pairMap.set(k,[]);
+      pairMap.get(k).push(p);
+    }
+  }
+}
+function answers(a,b){return pairMap.get(pairKey(a,b))||[]}
+function pairCount(a,b){return answers(a,b).filter(p=>p&&p.name&&!["nan","none","null","undefined"].includes(norm(p.name))).length}
+function teamCount(t){return teamFreq.get(t)||0}
+function sample(arr,n,used=new Set()){
+  const out=[]; if(!arr||!arr.length)return out; let guard=0;
+  while(out.length<n&&guard<n*160){const x=arr[Math.floor(Math.random()*arr.length)];if(x&&!used.has(x)&&!out.includes(x))out.push(x);guard++}
+  for(const x of arr){if(out.length>=n)break;if(x&&!used.has(x)&&!out.includes(x))out.push(x)}
+  return out;
+}
+function shuffleSmall(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function target(){if(difficulty==="easy")return{min:7,max:220};if(difficulty==="medium")return{min:3,max:80};return{min:1,max:28}}
+function validPair(a,b){const n=pairCount(a,b),r=target();return n>=r.min&&n<=r.max}
+function validGrid(rs,cs){if(new Set([...rs,...cs]).size!==6)return false;for(const r of rs)for(const c of cs)if(!validPair(r,c))return false;return true}
+function allowedTeams(){
+  const local=[],euro=[],known=[];
+  for(const t of allTeams){
+    const c=teamCount(t);
+    if(localTeamsBase.has(t))local.push(t);
+    else if(euroTeamsBase.has(t))euro.push(t);
+    else if(knownExtraTeamsBase.has(t)&&c>=6)known.push(t);
+  }
+  if(mode==="local")return[...new Set([...local,...euro.filter(t=>teamCount(t)>=10),...known])];
+  if(mode==="balanced")return[...new Set([...local,...euro,...known])];
+  return[...new Set([...euro,...known,...local.filter(t=>teamCount(t)>=12)])];
+}
+function boardSignature(rows,cols){return[...rows,...cols].join("||")}
+function makeBoard(){
+  const cand=allowedTeams();
+  for(let z=0;z<8000;z++){
+    let p=[],used=new Set();
+    if(mode==="local"){
+      const l=sample(cand.filter(t=>localTeamsBase.has(t)),4,used);l.forEach(x=>used.add(x));p=[...l,...sample(cand,2,used)];
+    }else if(mode==="balanced"){
+      const l=sample(cand.filter(t=>localTeamsBase.has(t)),3,used);l.forEach(x=>used.add(x));
+      const e=sample(cand.filter(t=>euroTeamsBase.has(t)),2,used);e.forEach(x=>used.add(x));
+      p=[...l,...e,...sample(cand,1,used)];
+    }else{
+      const e=sample(cand.filter(t=>euroTeamsBase.has(t)),4,used);e.forEach(x=>used.add(x));p=[...e,...sample(cand,2,used)];
+    }
+    if(p.length<6)continue;
+    p=shuffleSmall(p);
+    const rows=p.slice(0,3),cols=p.slice(3,6),sig=boardSignature(rows,cols);
+    if(sig===lastBoardSignature&&z<7900)continue;
+    if(validGrid(rows,cols)){lastBoardSignature=sig;return{rows,cols}}
+  }
+  const fallback={rows:["Galatasaray","Fenerbahçe","Beşiktaş"],cols:["Trabzonspor","Inter","Real Madrid"]};
+  lastBoardSignature=boardSignature(fallback.rows,fallback.cols);
+  return fallback;
+}
+function roomCode(){return Math.floor(100000+Math.random()*900000).toString()}
+
+async function createRoom(){
+  if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
+  if(!players.length)return msg("Veri henüz yüklenmedi. Biraz bekle.","bad");
+  const code=roomCode(),b=makeBoard();
+  const obj={room_code:code,host_id:myId,status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0,winner:null};
+  const {data,error}=await sb.from("rooms").insert(obj).select().single();
+  if(error)return msg(error.message,"bad");
+  room=data;mySide="X";subscribeRoom(code);msg("Oda kodu: "+code,"ok");render();
+}
+async function joinRoom(){
+  if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
+  const code=document.getElementById("joinCode").value.trim();
+  if(!code)return msg("Oda kodu yaz.","bad");
+  const q=await sb.from("rooms").select("*").eq("room_code",code).single();
+  if(q.error)return msg("Oda bulunamadı.","bad");
+  const u=await sb.from("rooms").update({guest_id:myId,status:"playing"}).eq("room_code",code).select().single();
+  if(u.error)return msg(u.error.message,"bad");
+  room=u.data;mySide="O";mode=room.mode||mode;difficulty=room.difficulty||difficulty;syncButtons();subscribeRoom(code);msg("Odaya katıldın.","ok");render();
+}
+function subscribeRoom(code){
+  if(channel)sb.removeChannel(channel);
+  channel=sb.channel("room-"+code).on("postgres_changes",{event:"UPDATE",schema:"public",table:"rooms",filter:"room_code=eq."+code},p=>{room=p.new;mode=room.mode||mode;difficulty=room.difficulty||difficulty;syncButtons();render()}).subscribe();
+}
+async function updateRoom(fields){
+  const {data,error}=await sb.from("rooms").update(fields).eq("room_code",room.room_code).select().single();
+  if(error)return msg(error.message,"bad");
+  room=data;render();
+}
+async function shuffleBoard(){
+  if(!room)return msg("Önce oda oluştur veya katıl.","bad");
+  if(!players.length)return msg("Veri hazır değil.","bad");
+  const before=boardSignature(room.rows||[],room.cols||[]);
+  const b=makeBoard();
+  const after=boardSignature(b.rows,b.cols);
+  await updateRoom({rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",winner:null,status:"playing",mode,difficulty});
+  selected=null;
+  toast(after===before?"Tablo yenilendi":"Eşleşmeler karıştırıldı");
+}
+async function newRound(){await shuffleBoard()}
+
+function winner(b){
+  const L=[[[0,0],[0,1],[0,2]],[[1,0],[1,1],[1,2]],[[2,0],[2,1],[2,2]],[[0,0],[1,0],[2,0]],[[0,1],[1,1],[2,1]],[[0,2],[1,2],[2,2]],[[0,0],[1,1],[2,2]],[[0,2],[1,1],[2,0]]];
+  for(const l of L){const m=l.map(([r,c])=>b[r][c]?.mark);if(m[0]&&m.every(x=>x===m[0]))return m[0]}
+  return null;
+}
+async function submitGuess(){
+  if(!room)return msg("Oda yok.","bad");
+  if(room.winner)return msg("Oyun bitti. Yeni tablo aç.","bad");
+  if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
+  if(!selected)return msg("Kare seç.","bad");
+  if(room.board[selected.r][selected.c])return msg("Bu kare dolu.","bad");
+  const name=document.getElementById("playerInput").value.trim();
+  if(!name)return msg("Oyuncu yaz.","bad");
+  const p=playerByNorm.get(norm(name));
+  const ans=answers(room.rows[selected.r],room.cols[selected.c]);
+  const ok=p&&ans.some(x=>norm(x.name)===norm(p.name));
+  const b=room.board,next=mySide==="X"?"O":"X";
+  const fields={turn:next};
+  if(ok){
+    b[selected.r][selected.c]={mark:mySide,player:p.name};
+    const w=winner(b);
+    fields.board=b;
+    if(w){fields.winner=w;fields.status="finished";if(w==="X")fields.score_x=(room.score_x||0)+1;else fields.score_o=(room.score_o||0)+1}
+    msg("Doğru.","ok");
+  }else{
+    msg("Yanlış. Sıra geçti.","bad");
+  }
+  await sb.from("moves").insert({room_code:room.room_code,player_side:mySide,row_index:selected.r,col_index:selected.c,player_name:name,is_correct:!!ok});
+  selected=null;document.getElementById("playerInput").value="";hideSuggest();
+  await updateRoom(fields);
+}
+function selectCell(r,c){if(!room||room.board[r][c]||room.winner)return;selected={r,c};render()}
+function setMode(m){mode=m;syncButtons();if(room&&mySide==="X")shuffleBoard()}
+function setDifficulty(d){difficulty=d;syncButtons();if(room&&mySide==="X")shuffleBoard()}
+function syncButtons(){
+  document.querySelectorAll(".mode-btn[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
+  document.querySelectorAll(".mode-btn[data-difficulty]").forEach(b=>b.classList.toggle("active",b.dataset.difficulty===difficulty));
+}
+function suggest(){
+  const q=norm(document.getElementById("playerInput").value),box=document.getElementById("suggestions");
+  if(q.length<2){box.style.display="none";return}
+  const list=[];
+  for(const p of players){const n=norm(p.name);if(n.includes(q)){list.push(p);if(list.length>=10)break}}
+  box.innerHTML=list.map(p=>`<div class="suggestion" onclick="pickName('${p.name.replaceAll("'","\\'")}')">${p.name}</div>`).join("");
+  box.style.display=list.length?"block":"none";
+}
+function pickName(n){document.getElementById("playerInput").value=n;hideSuggest()}
+function handleKey(e){if(e.key==="Enter")submitGuess()}
+
+function render(){
+  const rows=room?.rows||["-","-","-"],cols=room?.cols||["-","-","-"],board=room?.board||[[null,null,null],[null,null,null],[null,null,null]];
+  document.getElementById("roomText").textContent=room?.room_code||"-";
+  document.getElementById("roomCodeBox").textContent=room?.room_code||"------";
+  document.getElementById("sideText").textContent=mySide||"-";
+  document.getElementById("turnText").textContent=room?.winner?("Kazanan "+room.winner):(room?.turn||"-");
+  document.getElementById("scoreText").textContent=(room?.score_x||0)+" - "+(room?.score_o||0);
+  const connected=room?((room.guest_id&&room.host_id)?"İki oyuncu bağlı.":"Oda açık, rakip bekleniyor."):"Oda yok.";
+  status(players.length?connected:"Veri hazırlanıyor...");
+
+  let h="<tr><th class='corner'></th>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr>";
+  for(let r=0;r<3;r++){
+    h+=`<tr><th>${rows[r]}</th>`;
+    for(let c=0;c<3;c++){
+      const cell=board[r][c],cnt=pairCount(rows[r],cols[c]);
+      if(cell){
+        h+=`<td><span class="mark ${cell.mark.toLowerCase()}">${cell.mark}</span><span class="player-name">${cell.player}</span></td>`;
+      }else{
+        const sel=selected&&selected.r===r&&selected.c===c;
+        h+=`<td class="empty ${sel?'selected':''}" onclick="selectCell(${r},${c})"><span class="cell-tag">${cnt}</span><span class="plus">+</span></td>`;
+      }
+    }
+    h+="</tr>";
+  }
+  document.getElementById("grid").innerHTML=h;
+}
+function leaveRoom(){room=null;mySide=null;selected=null;if(channel)sb.removeChannel(channel);render();msg("Odadan çıktın.")}
+function preventGesture(){
+  document.addEventListener("gesturestart",e=>e.preventDefault());
+  document.addEventListener("gesturechange",e=>e.preventDefault());
+  document.addEventListener("gestureend",e=>e.preventDefault());
+  let lastTouchEnd=0;
+  document.addEventListener("touchend",e=>{
+    const now=Date.now();
+    if(now-lastTouchEnd<=300)e.preventDefault();
+    lastTouchEnd=now;
+  },{passive:false});
+}
+preventGesture();
+initSupabase();
+loadData();
+render();
+</script>
+</body>
+</html>
