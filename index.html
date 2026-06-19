@@ -335,7 +335,7 @@ const SUPABASE_URL="https://rqaiqaglttvmtiqtvlcj.supabase.co";
 const SUPABASE_KEY="sb_publishable_KYfl4P83lfv9ltr-1QmIXw_wQfsP-GM";
 const DATA_FILE="turkiye_grid_data_optimized.json";
 
-let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), pairMap=new Map(), playerSearch=[];
+let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), teamPlayers=new Map(), playerSearch=[], answerCache=new Map();
 let mode="local", difficulty="easy", room=null, channel=null, selected=null;
 let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null;
 let lastBoardSignature="";
@@ -362,7 +362,7 @@ function initSupabase(){
 async function loadData(){
   try{
     status("Veri yükleniyor...");
-    const res=await fetch(DATA_FILE+"?v=3");
+    const res=await fetch(DATA_FILE+"?v=7");
     const arr=await res.json();
     players=sanitize(arr);
     await buildIndex();
@@ -396,8 +396,9 @@ async function buildIndex(){
   allTeams=[...new Set(players.flatMap(p=>p.teams))];
   teamFreq=new Map();
   playerByNorm=new Map();
-  pairMap=new Map();
+  teamPlayers=new Map();
   playerSearch=[];
+  answerCache=new Map();
 
   const total=players.length;
   for(let idx=0; idx<players.length; idx++){
@@ -406,26 +407,36 @@ async function buildIndex(){
     playerByNorm.set(nk,p);
     playerSearch.push({n:nk,p});
 
-    for(const t of p.teams) teamFreq.set(t,(teamFreq.get(t)||0)+1);
-
     const ts=[...new Set(p.teams)];
-    for(let i=0;i<ts.length;i++){
-      for(let j=i+1;j<ts.length;j++){
-        const k=pairKey(ts[i],ts[j]);
-        if(!pairMap.has(k)) pairMap.set(k,[]);
-        pairMap.get(k).push(p);
-      }
+    for(const t of ts){
+      teamFreq.set(t,(teamFreq.get(t)||0)+1);
+      if(!teamPlayers.has(t)) teamPlayers.set(t,[]);
+      teamPlayers.get(t).push(p);
     }
 
-    if(idx%700===0){
+    if(idx%900===0){
       status("Veri hazırlanıyor... "+idx.toLocaleString("tr-TR")+" / "+total.toLocaleString("tr-TR"));
       await nextFrame();
     }
   }
   status("Veri hazır.");
 }
-function answers(a,b){return pairMap.get(pairKey(a,b))||[]}
-function pairCount(a,b){return answers(a,b).filter(p=>p&&p.name&&!["nan","none","null","undefined"].includes(norm(p.name))).length}
+function answers(a,b){
+  const k=pairKey(a,b);
+  if(answerCache.has(k)) return answerCache.get(k);
+  const A=teamPlayers.get(a)||[];
+  const B=teamPlayers.get(b)||[];
+  let small=A, otherTeam=b;
+  if(B.length<A.length){ small=B; otherTeam=a; }
+  const res=[];
+  for(const p of small){
+    if(p.teams.includes(otherTeam) && p.name && !["nan","none","null","undefined"].includes(norm(p.name))) res.push(p);
+  }
+  if(answerCache.size>600) answerCache.clear();
+  answerCache.set(k,res);
+  return res;
+}
+function pairCount(a,b){return answers(a,b).length}
 function teamCount(t){return teamFreq.get(t)||0}
 function sample(arr,n,used=new Set()){
   const out=[]; if(!arr||!arr.length)return out; let guard=0;
