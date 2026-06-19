@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v5.3</title>
+  <title>Turkey XoX v5.5</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -695,7 +695,7 @@
           </div>
           <div class="side-card-body">
             <label class="form-label text-muted fw-bold mb-2">ADIN</label>
-            <input class="form-control player-name-input mb-3" id="displayNameInput" placeholder="Adını yaz" maxlength="18" oninput="saveDisplayName()">
+            <input class="form-control player-name-input mb-3" id="displayNameInput" placeholder="Adını yazmadan oyuna girilmez" maxlength="18" oninput="saveDisplayName()">
             <button class="btn btn-primary w-100 fw-bold mb-3" onclick="createRoom()">Oda Oluştur</button>
             <div class="input-group mb-3">
               <input class="form-control" id="joinCode" placeholder="Oda kodu" inputmode="numeric" pattern="[0-9]*" maxlength="6">
@@ -734,7 +734,7 @@ const SUPABASE_KEY="sb_publishable_KYfl4P83lfv9ltr-1QmIXw_wQfsP-GM";
 const DATA_FILE="turkiye_grid_data_optimized.json";
 
 let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), teamPlayers=new Map(), playerSearch=[], answerCache=new Map();
-let dataReady=false, submitting=false, selectedPlayerName="";
+let dataReady=false, submitting=false, selectedPlayerName="", selectedPlayerObj=null, lastSuggestionPickAt=0;
 let mode="local", difficulty="easy", room=null, channel=null, selected=null;
 let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null, lastRoomCode=localStorage.getItem("tx_last_room_code")||"", myDisplayName=localStorage.getItem("tx_player_name")||"";
 let typingTimer=null, typingClearTimer=null, lastTypingUpdate=0, lastShownWinnerKey="";
@@ -802,7 +802,8 @@ function findPlayerSmart(rawName){
 
 function playerHasBothTeams(player,rowTeam,colTeam){
   if(!player || !Array.isArray(player.teams))return false;
-  return player.teams.includes(rowTeam) && player.teams.includes(colTeam);
+  const set = player.teamNormSet || new Set(player.teams.map(t=>norm(t)));
+  return set.has(norm(rowTeam)) && set.has(norm(colTeam));
 }
 
 function norm(s){return(s||"").toLocaleLowerCase("tr-TR").replaceAll("ı","i").replaceAll("İ","i").replaceAll("ş","s").replaceAll("ğ","g").replaceAll("ü","u").replaceAll("ö","o").replaceAll("ç","c").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();}
@@ -896,6 +897,7 @@ async function buildIndex(){
     playerSearch.push({n:nk,p});
 
     const ts=[...new Set(p.teams)];
+    p.teamNormSet = new Set(ts.map(t=>norm(t)));
     for(const t of ts){
       teamFreq.set(t,(teamFreq.get(t)||0)+1);
       if(!teamPlayers.has(t)) teamPlayers.set(t,[]);
@@ -1047,6 +1049,17 @@ function currentName(){
   return myDisplayName || (mySide==="X" ? "Oyuncu X" : mySide==="O" ? "Oyuncu O" : "Oyuncu");
 }
 
+function requireDisplayName(){
+  saveDisplayName();
+  if(!myDisplayName){
+    msg("Oyuna başlamadan önce adını yazmalısın.","bad");
+    const inp=document.getElementById("displayNameInput");
+    if(inp) inp.focus();
+    return false;
+  }
+  return true;
+}
+
 function hostLabel(){
   return room?.host_name || "Oyuncu X";
 }
@@ -1117,6 +1130,7 @@ function closeEndModal(){
 async function createRoom(){
   const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
+  if(!requireDisplayName())return;
   if(!dataReady)return msg("Veri henüz hazır değil. Biraz bekle.","bad");
   try{
     setBusy(btn,true,"Oda hazırlanıyor");
@@ -1134,6 +1148,7 @@ async function createRoom(){
 async function joinRoom(){
   const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
+  if(!requireDisplayName())return;
   if(!dataReady)return msg("Veri henüz hazır değil. Biraz bekle.","bad");
   const code=document.getElementById("joinCode").value.trim();
   if(!code)return msg("Oda kodu yaz.","bad");
@@ -1298,6 +1313,10 @@ function isPlayerAlreadyUsed(player){
 
 async function submitGuess(){
   const btn = event?.currentTarget;
+  if(Date.now()-lastSuggestionPickAt<650){
+    msg("Oyuncu seçildi. Hamle için butona tekrar bas.","ok");
+    return;
+  }
   if(submitting)return;
   if(!room)return msg("Oda yok.","bad");
   if(!dataReady)return msg("Veri hazır değil, bekle.","bad");
@@ -1311,7 +1330,7 @@ async function submitGuess(){
 
   const name=document.getElementById("playerInput").value.trim();
   if(!name)return msg("Oyuncu yaz.","bad");
-  if(!selectedPlayerName || norm(selectedPlayerName)!==norm(name)){
+  if(!selectedPlayerName || norm(selectedPlayerName)!==norm(name) || !selectedPlayerObj){
     return msg("Oyuncuyu açılır listeden seçmelisin.","bad");
   }
 
@@ -1319,7 +1338,7 @@ async function submitGuess(){
   setBusy(btn,true,"Gönderiliyor");
 
   const previousRoom=JSON.parse(JSON.stringify(room));
-  const p=findPlayerSmart(selectedPlayerName || name);
+  const p=selectedPlayerObj;
   const rowTeam=room.rows[moveCell.r];
   const colTeam=room.cols[moveCell.c];
   const ok=playerHasBothTeams(p,rowTeam,colTeam);
@@ -1356,6 +1375,7 @@ async function submitGuess(){
   selected=null;
   document.getElementById("playerInput").value="";
   selectedPlayerName="";
+  selectedPlayerObj=null;
   hideSuggest();
   render();
   if(animatedCellKey) setTimeout(()=>{animatedCellKey="";render();},820);
@@ -1414,6 +1434,7 @@ function syncButtons(){
 }
 function suggest(){
   selectedPlayerName="";
+  selectedPlayerObj=null;
   const q=norm(document.getElementById("playerInput").value),box=document.getElementById("suggestions");
   if(q.length<2){box.style.display="none";return}
   const list=[];
@@ -1423,7 +1444,7 @@ function suggest(){
       if(list.length>=10)break;
     }
   }
-  box.innerHTML=list.map(p=>`<div class="suggestion" onpointerdown="pickName(event,'${p.name.replaceAll("'","\\'")}')">${p.name}</div>`).join("");
+  box.innerHTML=list.map(p=>`<div class="suggestion" onpointerup="pickName(event,'${p.name.replaceAll("'","\'")}')" onclick="event.preventDefault();event.stopPropagation();">${p.name}</div>`).join("");
   box.style.display=list.length?"block":"none";
 }
 function pickName(ev,n){
@@ -1432,15 +1453,17 @@ function pickName(ev,n){
     ev.stopPropagation();
   }
   if(!n && typeof ev==="string") n=ev;
+  lastSuggestionPickAt=Date.now();
   selectedPlayerName=n;
+  selectedPlayerObj=playerByNorm.get(norm(n)) || findPlayerSmart(n);
   document.getElementById("playerInput").value=n;
   hideSuggest();
-  msg("Oyuncu seçildi. Hamle yapmak için Hamle Yap'a bas.");
+  msg("Oyuncu seçildi. Şimdi Hamle Yap butonuna bas.");
 }
 function handleKey(e){
   if(e.key==="Enter"){
     const box=document.getElementById("suggestions");
-    if(box && box.style.display==="block"){
+    if((box && box.style.display==="block") || Date.now()-lastSuggestionPickAt<650){
       e.preventDefault();
       return;
     }
