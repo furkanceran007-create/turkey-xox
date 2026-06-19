@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v4.5</title>
+  <title>Turkey XoX v4.6</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -231,6 +231,29 @@
 
 
 
+
+    .grid td.locked-cell {
+      border-color: var(--primary) !important;
+      background: #dbeafe !important;
+      border-style: solid !important;
+      box-shadow: 0 0 0 5px rgba(37,99,235,.18) !important;
+    }
+    .grid td.other-disabled {
+      cursor: not-allowed !important;
+      opacity: .55;
+      transform: none !important;
+    }
+    .grid td.other-disabled .plus {
+      background: #e2e8f0 !important;
+      color: #94a3b8 !important;
+    }
+    .selected-cell-note {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
     .live-banner {
       margin: 18px 24px 0;
       border-radius: var(--radius-lg);
@@ -313,7 +336,30 @@
       box-shadow: 0 0 0 4px rgba(16,185,129,.2);
     }
     @media (max-width: 680px) {
-      .live-banner {
+  
+    .grid td.locked-cell {
+      border-color: var(--primary) !important;
+      background: #dbeafe !important;
+      border-style: solid !important;
+      box-shadow: 0 0 0 5px rgba(37,99,235,.18) !important;
+    }
+    .grid td.other-disabled {
+      cursor: not-allowed !important;
+      opacity: .55;
+      transform: none !important;
+    }
+    .grid td.other-disabled .plus {
+      background: #e2e8f0 !important;
+      color: #94a3b8 !important;
+    }
+    .selected-cell-note {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .live-banner {
         margin: 12px 10px 0;
         padding: 12px;
         align-items: flex-start;
@@ -480,6 +526,7 @@ const SUPABASE_KEY="sb_publishable_KYfl4P83lfv9ltr-1QmIXw_wQfsP-GM";
 const DATA_FILE="turkiye_grid_data_optimized.json";
 
 let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), teamPlayers=new Map(), playerSearch=[], answerCache=new Map();
+let dataReady=false, submitting=false;
 let mode="local", difficulty="easy", room=null, channel=null, selected=null;
 let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null, lastRoomCode=localStorage.getItem("tx_last_room_code")||"";
 let lastBoardSignature="";
@@ -528,15 +575,20 @@ function initSupabase(){
 
 async function loadData(){
   try{
+    dataReady=false;
     status("Veri yükleniyor...");
-    const res=await fetch(DATA_FILE+"?v=7");
+    msg("Veri hazırlanıyor, lütfen bekle...");
+    const res=await fetch(DATA_FILE+"?v=8");
     const arr=await res.json();
     players=sanitize(arr);
     await buildIndex();
+    dataReady=true;
     document.getElementById("dataBadge").textContent=players.length.toLocaleString("tr-TR")+" oyuncu";
     status("Veri hazır.");
+    msg("Veri hazır. Oda oluşturabilir veya katılabilirsin.","ok");
     render();
   }catch(e){
+    dataReady=false;
     msg("Veri dosyası okunamadı: "+DATA_FILE,"bad");
     status("Veri yüklenemedi.");
   }
@@ -719,7 +771,7 @@ function roomCode(){return Math.floor(100000+Math.random()*900000).toString()}
 async function createRoom(){
   const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
-  if(!players.length)return msg("Veri henüz yüklenmedi. Biraz bekle.","bad");
+  if(!dataReady)return msg("Veri henüz hazır değil. Biraz bekle.","bad");
   try{
     setBusy(btn,true,"Oda hazırlanıyor");
     msg("Oda oluşturuluyor...");
@@ -736,6 +788,7 @@ async function createRoom(){
 async function joinRoom(){
   const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
+  if(!dataReady)return msg("Veri henüz hazır değil. Biraz bekle.","bad");
   const code=document.getElementById("joinCode").value.trim();
   if(!code)return msg("Oda kodu yaz.","bad");
   try{
@@ -800,6 +853,7 @@ function subscribeRoom(code){
     room=p.new;
     mode=room.mode||mode;
     difficulty=room.difficulty||difficulty;
+    if(room.turn!==mySide || room.winner) selected=null;
     syncButtons();
     render();
     if(room.status==="closed" && !room.host_id && !room.guest_id) msg("İki oyuncu da çıktı. Oda kapandı.","bad");
@@ -816,7 +870,7 @@ async function shuffleBoard(){
   const btn = event?.currentTarget;
   if(!room)return msg("Önce oda oluştur veya katıl.","bad");
   if(mySide!=="X")return msg("Eşleşmeleri sadece oda sahibi değiştirebilir.","bad");
-  if(!players.length)return msg("Veri hazır değil.","bad");
+  if(!dataReady)return msg("Veri hazır değil.","bad");
   try{
     setBusy(btn,true,"Karıştırılıyor");
     msg("Yeni eşleşmeler hazırlanıyor...");
@@ -840,11 +894,13 @@ function winner(b){
 }
 async function passTurn(){
   const btn = event?.currentTarget;
+  if(submitting)return;
   if(!room)return msg("Oda yok.","bad");
   if(room.winner)return msg("Oyun bitti. Yeni tablo aç.","bad");
   if(!room.host_id || !room.guest_id)return msg("Diğer oyuncu bekleniyor.","bad");
   if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
   try{
+    submitting=true;
     setBusy(btn,true,"Pas geçiliyor");
     msg("Pas geçiliyor...");
     const next=mySide==="X"?"O":"X";
@@ -857,58 +913,93 @@ async function passTurn(){
       is_correct:false
     });
     selected=null;
+    selected=null;
     await updateRoom({turn:next});
     msg("Pas geçildi. Sıra rakipte.");
   }finally{
+    submitting=false;
     setBusy(btn,false);
   }
 }
 
 async function submitGuess(){
   const btn = event?.currentTarget;
+  if(submitting)return;
   if(!room)return msg("Oda yok.","bad");
+  if(!dataReady)return msg("Veri hazır değil, bekle.","bad");
   if(room.winner)return msg("Oyun bitti. Yeni tablo aç.","bad");
   if(!room.host_id || !room.guest_id)return msg("Diğer oyuncu bekleniyor.","bad");
   if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
-  if(!selected)return msg("Kare seç.","bad");
-  if(room.board[selected.r][selected.c])return msg("Bu kare dolu.","bad");
+  if(!selected)return msg("Önce kare seç. Seçilen kare mavi kilitlenir.","bad");
+
+  const moveCell={r:selected.r,c:selected.c};
+  if(room.board[moveCell.r][moveCell.c])return msg("Bu kare dolu.","bad");
+
   const name=document.getElementById("playerInput").value.trim();
   if(!name)return msg("Oyuncu yaz.","bad");
+
   try{
+    submitting=true;
     setBusy(btn,true,"Kontrol ediliyor");
     msg("Cevap kontrol ediliyor...");
     const p=playerByNorm.get(norm(name));
-    const ans=answers(room.rows[selected.r],room.cols[selected.c]);
-    const ok=p&&ans.some(x=>norm(x.name)===norm(p.name));
-    const b=room.board,next=mySide==="X"?"O":"X";
+    const ans=answers(room.rows[moveCell.r],room.cols[moveCell.c]);
+    const ok=!!(p&&ans.some(x=>norm(x.name)===norm(p.name)));
+    const b=JSON.parse(JSON.stringify(room.board));
+    const next=mySide==="X"?"O":"X";
     const fields={turn:next};
+
     if(ok){
-      b[selected.r][selected.c]={mark:mySide,player:p.name};
+      b[moveCell.r][moveCell.c]={mark:mySide,player:p.name};
       const w=winner(b);
       fields.board=b;
-      if(w){fields.winner=w;fields.status="finished";if(w==="X")fields.score_x=(room.score_x||0)+1;else fields.score_o=(room.score_o||0)+1}
-      msg("Doğru.","ok");
+      if(w){
+        fields.winner=w;
+        fields.status="finished";
+        if(w==="X")fields.score_x=(room.score_x||0)+1;
+        else fields.score_o=(room.score_o||0)+1;
+      }
+      msg("Doğru. Hamle işlendi.","ok");
     }else{
-      msg("Yanlış. Sıra geçti.","bad");
+      msg("Yanlış. Sıra rakibe geçti.","bad");
     }
-    await sb.from("moves").insert({room_code:room.room_code,player_side:mySide,row_index:selected.r,col_index:selected.c,player_name:name,is_correct:!!ok});
-    selected=null;document.getElementById("playerInput").value="";hideSuggest();
+
+    await sb.from("moves").insert({
+      room_code:room.room_code,
+      player_side:mySide,
+      row_index:moveCell.r,
+      col_index:moveCell.c,
+      player_name:name,
+      is_correct:ok
+    });
+
+    selected=null;
+    document.getElementById("playerInput").value="";
+    hideSuggest();
     await updateRoom(fields);
   }finally{
+    submitting=false;
     setBusy(btn,false);
   }
 }
 function canPlay(){
-  return room && !room.winner && mySide && room.turn===mySide && room.status!=="closed" && room.host_id && room.guest_id;
+  return dataReady && room && !room.winner && mySide && room.turn===mySide && room.status!=="closed" && room.host_id && room.guest_id && !submitting;
 }
 function selectCell(r,c){
   if(!room||room.board[r][c]||room.winner)return;
+  if(submitting)return;
+  if(!dataReady){
+    msg("Veri hazır değil, bekle.","bad");
+    return;
+  }
   if(!canPlay()){
     msg("Sıra sende değil.","bad");
     return;
   }
   selected={r,c};
+  msg("Kare kilitlendi. Şimdi futbolcu adını seç ve Hamle Yap'a bas.","ok");
   render();
+  setTimeout(()=>document.getElementById("playerInput")?.focus(),50);
 }
 function setMode(m){mode=m;syncButtons();if(room&&mySide==="X")shuffleBoard()}
 function setDifficulty(d){difficulty=d;syncButtons();if(room&&mySide==="X")shuffleBoard()}
@@ -926,11 +1017,28 @@ function suggest(){
       if(list.length>=10)break;
     }
   }
-  box.innerHTML=list.map(p=>`<div class="suggestion" onclick="pickName('${p.name.replaceAll("'","\\'")}')">${p.name}</div>`).join("");
+  box.innerHTML=list.map(p=>`<div class="suggestion" onmousedown="pickName(event,'${p.name.replaceAll("'","\\'")}')" ontouchstart="pickName(event,'${p.name.replaceAll("'","\\'")}')">${p.name}</div>`).join("");
   box.style.display=list.length?"block":"none";
 }
-function pickName(n){document.getElementById("playerInput").value=n;hideSuggest()}
-function handleKey(e){if(e.key==="Enter")submitGuess()}
+function pickName(ev,n){
+  if(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+  document.getElementById("playerInput").value=n;
+  hideSuggest();
+  msg("Oyuncu seçildi. Hamle yapmak için Hamle Yap'a bas.");
+}
+function handleKey(e){
+  if(e.key==="Enter"){
+    const box=document.getElementById("suggestions");
+    if(box && box.style.display==="block"){
+      e.preventDefault();
+      return;
+    }
+    submitGuess();
+  }
+}
 
 function updateLiveBanner(){
   const banner=document.getElementById("liveBanner");
@@ -941,6 +1049,15 @@ function updateLiveBanner(){
   if(!banner||!title||!sub||!pill)return;
 
   banner.classList.remove("my-turn","wait-turn","wait-player");
+
+  if(!dataReady){
+    banner.classList.add("wait-player");
+    title.textContent="Veri hazırlanıyor";
+    sub.textContent="Oyuncu havuzu yüklenmeden hamle yapılamaz.";
+    pill.textContent="Yükleniyor";
+    if(online) online.textContent="Yükleniyor";
+    return;
+  }
 
   if(!room){
     banner.classList.add("wait-player");
@@ -1021,7 +1138,9 @@ function render(){
       }else{
         const sel=selected&&selected.r===r&&selected.c===c;
         const disabled=!canPlay();
-        h+=`<td class="empty ${sel?'selected':''} ${disabled?'disabled-turn':''}" onclick="selectCell(${r},${c})"><span class="cell-tag">${cnt}</span><span class="plus">+</span></td>`;
+        const locked=selected&&selected.r===r&&selected.c===c;
+        const otherLocked=selected&&!locked;
+        h+=`<td class="empty ${sel?'selected locked-cell':''} ${disabled||otherLocked?'disabled-turn other-disabled':''}" onclick="selectCell(${r},${c})"><span class="cell-tag">${cnt}</span><span class="plus">${locked?'✓':'+'}</span>${locked?'<div class="selected-cell-note">Seçili</div>':''}</td>`;
       }
     }
     h+="</tr>";
