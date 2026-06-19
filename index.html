@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v5.1</title>
+  <title>Turkey XoX v5.3</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -254,6 +254,104 @@
       color: var(--primary);
     }
 
+
+
+    .grid td.cell-pop {
+      animation: cellPop .32s ease-out;
+    }
+    .grid td.cell-glow {
+      animation: cellGlow .75s ease-out;
+    }
+    .grid td.cell-shake {
+      animation: cellShake .28s ease-in-out;
+    }
+    @keyframes cellPop {
+      0% { transform: scale(.88); opacity: .45; }
+      70% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes cellGlow {
+      0% { box-shadow: 0 0 0 0 rgba(37,99,235,.36); }
+      45% { box-shadow: 0 0 0 8px rgba(37,99,235,.16); }
+      100% { box-shadow: var(--shadow-sm); }
+    }
+    @keyframes cellShake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-3px); }
+    }
+
+    .player-name-input {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-dark);
+      padding: 11px 13px;
+      font-weight: 700;
+      font-size: 16px !important;
+    }
+    .typing-pill {
+      display: none;
+      margin-top: 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .typing-pill.show { display: inline-flex; align-items: center; gap: 8px; }
+    .typing-dots::after {
+      content: "";
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0% { content: ""; }
+      25% { content: "."; }
+      50% { content: ".."; }
+      75% { content: "..."; }
+      100% { content: ""; }
+    }
+    .grid td.filled-anim {
+      animation: popCell .22s ease-out;
+    }
+    @keyframes popCell {
+      from { transform: scale(.96); opacity: .72; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .end-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.55);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 18px;
+    }
+    .end-modal-backdrop.show { display: flex; }
+    .end-modal {
+      width: min(420px, 100%);
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      padding: 26px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-light);
+    }
+    .end-modal-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 14px;
+      background: #eff6ff;
+      color: var(--primary);
+      font-size: 30px;
+    }
+
     .live-banner {
       margin: 18px 24px 0;
       border-radius: var(--radius-lg);
@@ -357,6 +455,104 @@
       font-size: 12px;
       font-weight: 800;
       color: var(--primary);
+    }
+
+
+
+    .grid td.cell-pop {
+      animation: cellPop .32s ease-out;
+    }
+    .grid td.cell-glow {
+      animation: cellGlow .75s ease-out;
+    }
+    .grid td.cell-shake {
+      animation: cellShake .28s ease-in-out;
+    }
+    @keyframes cellPop {
+      0% { transform: scale(.88); opacity: .45; }
+      70% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes cellGlow {
+      0% { box-shadow: 0 0 0 0 rgba(37,99,235,.36); }
+      45% { box-shadow: 0 0 0 8px rgba(37,99,235,.16); }
+      100% { box-shadow: var(--shadow-sm); }
+    }
+    @keyframes cellShake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-3px); }
+    }
+
+    .player-name-input {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-dark);
+      padding: 11px 13px;
+      font-weight: 700;
+      font-size: 16px !important;
+    }
+    .typing-pill {
+      display: none;
+      margin-top: 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .typing-pill.show { display: inline-flex; align-items: center; gap: 8px; }
+    .typing-dots::after {
+      content: "";
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0% { content: ""; }
+      25% { content: "."; }
+      50% { content: ".."; }
+      75% { content: "..."; }
+      100% { content: ""; }
+    }
+    .grid td.filled-anim {
+      animation: popCell .22s ease-out;
+    }
+    @keyframes popCell {
+      from { transform: scale(.96); opacity: .72; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .end-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.55);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 18px;
+    }
+    .end-modal-backdrop.show { display: flex; }
+    .end-modal {
+      width: min(420px, 100%);
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      padding: 26px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-light);
+    }
+    .end-modal-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 14px;
+      background: #eff6ff;
+      color: var(--primary);
+      font-size: 30px;
     }
 
     .live-banner {
@@ -472,7 +668,7 @@
             <div class="col-12 col-md">
               <label class="form-label text-muted fw-bold mb-2">FUTBOLCU ADI</label>
               <div class="input-wrap position-relative">
-                <input class="form-control player-input w-100" id="playerInput" placeholder="Oyuncu adını yazmaya başla..." autocomplete="off" oninput="suggest()" onkeydown="handleKey(event)" onblur="setTimeout(hideSuggest,180)">
+                <input class="form-control player-input w-100" id="playerInput" placeholder="Oyuncu adını yazmaya başla..." autocomplete="off" oninput="onPlayerInput()" onkeydown="handleKey(event)" onblur="setTimeout(hideSuggest,180)">
                 <div id="suggestions" class="suggestions w-100"></div>
               </div>
             </div>
@@ -481,6 +677,7 @@
             </div>
           </div>
           <div id="msg" class="message">Oda oluştur veya koda katıl.</div>
+          <div id="typingPill" class="typing-pill"><i class="bi bi-pencil-square"></i><span id="typingText">Rakip yazıyor</span><span class="typing-dots"></span></div>
 
           <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top action-row">
             <button class="btn btn-dark fw-bold rounded-pill px-4" onclick="shuffleBoard()"><i class="bi bi-shuffle me-1"></i> Karıştır</button>
@@ -497,6 +694,8 @@
             <h2><i class="bi bi-wifi me-2"></i>Canlı Oyun</h2>
           </div>
           <div class="side-card-body">
+            <label class="form-label text-muted fw-bold mb-2">ADIN</label>
+            <input class="form-control player-name-input mb-3" id="displayNameInput" placeholder="Adını yaz" maxlength="18" oninput="saveDisplayName()">
             <button class="btn btn-primary w-100 fw-bold mb-3" onclick="createRoom()">Oda Oluştur</button>
             <div class="input-group mb-3">
               <input class="form-control" id="joinCode" placeholder="Oda kodu" inputmode="numeric" pattern="[0-9]*" maxlength="6">
@@ -518,6 +717,15 @@
     </div>
   </div>
 
+  <div class="end-modal-backdrop" id="endModal">
+    <div class="end-modal">
+      <div class="end-modal-icon"><i class="bi bi-trophy-fill"></i></div>
+      <h2 class="h4 fw-black fw-bold mb-2" id="endTitle">Oyun Bitti</h2>
+      <div class="text-muted fw-semibold mb-4" id="endSub">Yeni tablo ile devam edebilirsin.</div>
+      <button class="btn btn-primary fw-bold w-100 mb-2" onclick="closeEndModal(); newRound();">Yeni Tablo</button>
+      <button class="btn btn-outline-secondary fw-bold w-100" onclick="closeEndModal()">Kapat</button>
+    </div>
+  </div>
   <div id="toast" class="toast-pro"></div>
 
 <script>
@@ -528,7 +736,9 @@ const DATA_FILE="turkiye_grid_data_optimized.json";
 let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), teamPlayers=new Map(), playerSearch=[], answerCache=new Map();
 let dataReady=false, submitting=false, selectedPlayerName="";
 let mode="local", difficulty="easy", room=null, channel=null, selected=null;
-let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null, lastRoomCode=localStorage.getItem("tx_last_room_code")||"";
+let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null, lastRoomCode=localStorage.getItem("tx_last_room_code")||"", myDisplayName=localStorage.getItem("tx_player_name")||"";
+let typingTimer=null, typingClearTimer=null, lastTypingUpdate=0, lastShownWinnerKey="";
+let lastBoardStateKey="", animatedCellKey="", shakeCellKey="";
 let lastBoardSignature="";
 localStorage.setItem("tx_player_id",myId);
 
@@ -827,6 +1037,83 @@ function makeBoard(){
 }
 function roomCode(){return Math.floor(100000+Math.random()*900000).toString()}
 
+function saveDisplayName(){
+  const inp=document.getElementById("displayNameInput");
+  myDisplayName=(inp?.value||"").trim();
+  localStorage.setItem("tx_player_name",myDisplayName);
+}
+
+function currentName(){
+  return myDisplayName || (mySide==="X" ? "Oyuncu X" : mySide==="O" ? "Oyuncu O" : "Oyuncu");
+}
+
+function hostLabel(){
+  return room?.host_name || "Oyuncu X";
+}
+
+function guestLabel(){
+  return room?.guest_name || "Oyuncu O";
+}
+
+function opponentLabel(){
+  if(!room)return "Rakip";
+  return mySide==="X" ? guestLabel() : hostLabel();
+}
+
+function setInitialName(){
+  const inp=document.getElementById("displayNameInput");
+  if(inp) inp.value=myDisplayName;
+}
+
+async function setTyping(active){
+  if(!room || !sb || !mySide || !dataReady) return;
+  const now=Date.now();
+  if(active && now-lastTypingUpdate<900) return;
+  lastTypingUpdate=now;
+  try{
+    await sb.from("rooms").update({
+      typing_side: active ? mySide : null,
+      typing_at: active ? new Date().toISOString() : null
+    }).eq("room_code",room.room_code);
+  }catch(e){}
+}
+
+function onPlayerInput(){
+  suggest();
+  if(!room || room.turn!==mySide) return;
+  setTyping(true);
+  clearTimeout(typingTimer);
+  typingTimer=setTimeout(()=>setTyping(false),1800);
+}
+
+function updateTypingIndicator(){
+  const pill=document.getElementById("typingPill");
+  const text=document.getElementById("typingText");
+  if(!pill || !text || !room){ if(pill)pill.classList.remove("show"); return; }
+  const isOpponentTyping=room.typing_side && room.typing_side!==mySide;
+  if(isOpponentTyping){
+    text.textContent=opponentLabel()+" cevap yazıyor";
+    pill.classList.add("show");
+  }else{
+    pill.classList.remove("show");
+  }
+}
+
+function showEndModal(){
+  const modal=document.getElementById("endModal");
+  if(!modal || !room?.winner) return;
+  const title=document.getElementById("endTitle");
+  const sub=document.getElementById("endSub");
+  const winnerName=room.winner==="X" ? hostLabel() : guestLabel();
+  title.textContent = (room.winner===mySide ? "Kazandın!" : winnerName+" kazandı");
+  sub.textContent = "Yeni tablo ile rövanş oynayabilirsiniz.";
+  modal.classList.add("show");
+}
+
+function closeEndModal(){
+  document.getElementById("endModal")?.classList.remove("show");
+}
+
 async function createRoom(){
   const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
@@ -836,7 +1123,7 @@ async function createRoom(){
     msg("Oda oluşturuluyor...");
     status("Oda oluşturuluyor...");
     const code=roomCode(),b=makeBoard();
-    const obj={room_code:code,host_id:myId,status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0,winner:null};
+    const obj={room_code:code,host_id:myId,host_name:currentName(),status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0,winner:null,typing_side:null,typing_at:null};
     const {data,error}=await sb.from("rooms").insert(obj).select().single();
     if(error){msg(error.message,"bad");return;}
     room=data;mySide="X";lastRoomCode=code;localStorage.setItem("tx_last_room_code",code);subscribeRoom(code);msg("Oda kodu: "+code,"ok");render();
@@ -863,22 +1150,26 @@ async function joinRoom(){
     // Aynı oyuncu geri dönüyorsa kendi tarafına bağla.
     if(current.host_id===myId){
       mySide="X";
+      updates.host_name=currentName();
       if(current.status==="closed") updates.status=current.guest_id?"playing":"waiting";
     }
     else if(current.guest_id===myId){
       mySide="O";
+      updates.guest_name=currentName();
       if(current.status==="closed") updates.status=current.host_id?"playing":"waiting";
     }
     // Host tarafı boşsa ve odada biri varsa host olarak geri/dahil ol.
     else if(!current.host_id && current.guest_id!==myId){
       mySide="X";
       updates.host_id=myId;
+      updates.host_name=currentName();
       updates.status=current.guest_id?"playing":"waiting";
     }
     // Guest tarafı boşsa guest olarak katıl.
     else if(!current.guest_id && current.host_id!==myId){
       mySide="O";
       updates.guest_id=myId;
+      updates.guest_name=currentName();
       updates.status=current.host_id?"playing":"waiting";
     }
     else{
@@ -909,12 +1200,19 @@ async function joinRoom(){
 function subscribeRoom(code){
   if(channel)sb.removeChannel(channel);
   channel=sb.channel("room-"+code).on("postgres_changes",{event:"UPDATE",schema:"public",table:"rooms",filter:"room_code=eq."+code},p=>{
-    room=p.new;
+    const oldBoard=room?.board;
+    const newRoom=p.new;
+    const newCell=detectNewFilledCell(oldBoard,newRoom.board);
+    room=newRoom;
     mode=room.mode||mode;
     difficulty=room.difficulty||difficulty;
     if(room.turn!==mySide || room.winner) selected=null;
+    if(newCell) animatedCellKey=newCell;
     syncButtons();
     render();
+    if(newCell){
+      setTimeout(()=>{animatedCellKey="";render();},820);
+    }
     if(room.status==="closed" && !room.host_id && !room.guest_id) msg("İki oyuncu da çıktı. Oda kapandı.","bad");
     else if(!room.host_id || !room.guest_id) msg("Rakip odadan çıktı. Aynı kodla geri dönebilir.");
     else if(room.turn===mySide) msg("Sıra sende.","ok");
@@ -973,7 +1271,8 @@ async function passTurn(){
     });
     selected=null;
     selected=null;
-    await updateRoom({turn:next});
+    await setTyping(false);
+    await updateRoom({turn:next, typing_side:null, typing_at:null});
     msg("Pas geçildi. Sıra rakipte.");
   }finally{
     submitting=false;
@@ -1034,7 +1333,7 @@ async function submitGuess(){
 
   const b=JSON.parse(JSON.stringify(room.board));
   const next=mySide==="X"?"O":"X";
-  const fields={turn:next};
+  const fields={turn:next, typing_side:null, typing_at:null};
 
   if(ok){
     b[moveCell.r][moveCell.c]={mark:mySide,player:p.name};
@@ -1059,6 +1358,8 @@ async function submitGuess(){
   selectedPlayerName="";
   hideSuggest();
   render();
+  if(animatedCellKey) setTimeout(()=>{animatedCellKey="";render();},820);
+  if(shakeCellKey) setTimeout(()=>{shakeCellKey="";render();},340);
 
   // Hamle geçmişi arka planda gitsin; oyun akışını bekletmesin.
   sb.from("moves").insert({
@@ -1147,6 +1448,36 @@ function handleKey(e){
   }
 }
 
+function boardStateKey(board){
+  try{
+    return (board||[]).map(row=>(row||[]).map(cell=>cell?((cell.mark||"")+"-"+(cell.player||"")):"_").join(",")).join("|");
+  }catch(e){return "";}
+}
+
+function detectNewFilledCell(oldBoard,newBoard){
+  if(!oldBoard||!newBoard)return "";
+  for(let r=0;r<3;r++){
+    for(let c=0;c<3;c++){
+      const oldCell=oldBoard?.[r]?.[c];
+      const newCell=newBoard?.[r]?.[c];
+      if(!oldCell && newCell) return r+"-"+c;
+    }
+  }
+  return "";
+}
+
+function pulseCell(key,type="pop"){
+  if(!key)return;
+  if(type==="shake") shakeCellKey=key;
+  else animatedCellKey=key;
+  render();
+  setTimeout(()=>{
+    if(type==="shake") shakeCellKey="";
+    else animatedCellKey="";
+    render();
+  }, type==="shake" ? 320 : 820);
+}
+
 function updateLiveBanner(){
   const banner=document.getElementById("liveBanner");
   const title=document.getElementById("liveTitle");
@@ -1210,7 +1541,7 @@ function updateLiveBanner(){
     if(online) online.textContent="Sıra sende";
   }else{
     banner.classList.add("wait-turn");
-    title.textContent="Rakipte";
+    title.textContent=opponentLabel()+" oynuyor";
     sub.textContent="Rakibin hamlesi bekleniyor.";
     pill.textContent="Bekleniyor";
     if(online) online.textContent="Rakipte";
@@ -1222,8 +1553,8 @@ function render(){
   const rows=room?.rows||["-","-","-"],cols=room?.cols||["-","-","-"],board=room?.board||[[null,null,null],[null,null,null],[null,null,null]];
   document.getElementById("roomText").textContent=room?.room_code||"-";
   document.getElementById("roomCodeBox").textContent=room?.room_code||"------";
-  document.getElementById("sideText").textContent=mySide?(mySide==="X"?"X / Oda sahibi":"O / Misafir"):"-";
-  document.getElementById("turnText").textContent=room?.winner?("Kazanan "+room.winner):(room?(room.turn===mySide?"Sende":"Rakipte"):"-");
+  document.getElementById("sideText").textContent=mySide?(mySide==="X"?"X / "+hostLabel():"O / "+guestLabel()):"-";
+  document.getElementById("turnText").textContent=room?.winner?("Kazanan "+(room.winner==="X"?hostLabel():guestLabel())):(room?(room.turn===mySide?"Sende":opponentLabel()):"-");
   document.getElementById("scoreText").textContent=(room?.score_x||0)+" - "+(room?.score_o||0);
   let connected="Oda yok.";
   if(room){
@@ -1241,18 +1572,33 @@ function render(){
     for(let c=0;c<3;c++){
       const cell=board[r][c],cnt=pairCount(rows[r],cols[c]);
       if(cell){
-        h+=`<td><span class="mark ${cell.mark.toLowerCase()}">${cell.mark}</span><span class="player-name">${cell.player}</span></td>`;
+        const key=r+"-"+c;
+        const animClass=animatedCellKey===key?"cell-pop cell-glow":"";
+        h+=`<td class="${animClass}"><span class="mark ${cell.mark.toLowerCase()}">${cell.mark}</span><span class="player-name">${cell.player}</span></td>`;
       }else{
         const sel=selected&&selected.r===r&&selected.c===c;
         const disabled=!canPlay();
         const locked=selected&&selected.r===r&&selected.c===c;
         const otherLocked=selected&&!locked;
-        h+=`<td class="empty ${sel?'selected locked-cell':''} ${disabled||otherLocked?'disabled-turn other-disabled':''}" onclick="selectCell(${r},${c})"><span class="cell-tag">${cnt}</span><span class="plus">${locked?'✓':'+'}</span>${locked?'<div class="selected-cell-note">Seçili</div>':''}</td>`;
+        const key=r+"-"+c;
+        const shakeClass=shakeCellKey===key?"cell-shake":"";
+        h+=`<td class="empty ${sel?'selected locked-cell':''} ${disabled||otherLocked?'disabled-turn other-disabled':''} ${shakeClass}" onclick="selectCell(${r},${c})"><span class="cell-tag">${cnt}</span><span class="plus">${locked?'✓':'+'}</span>${locked?'<div class="selected-cell-note">Seçili</div>':''}</td>`;
       }
     }
     h+="</tr>";
   }
   document.getElementById("grid").innerHTML=h;
+  updateTypingIndicator();
+  if(room?.winner){
+    const key=(room.room_code||"")+"-"+room.winner+"-"+(room.score_x||0)+"-"+(room.score_o||0);
+    if(key!==lastShownWinnerKey){
+      lastShownWinnerKey=key;
+      setTimeout(showEndModal,180);
+    }
+  }else{
+    lastShownWinnerKey="";
+    closeEndModal();
+  }
 }
 async function leaveRoom(){
   const btn = event?.currentTarget;
@@ -1350,6 +1696,7 @@ function prefillLastRoomCode(){
 }
 preventGesture();
 initSupabase();
+setInitialName();
 prefillLastRoomCode();
 loadData();
 render();
