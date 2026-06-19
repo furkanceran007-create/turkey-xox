@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v5.7</title>
+  <title>Turkey XoX v5.9</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -283,6 +283,77 @@
     }
 
 
+
+    #msg {
+      display: none !important;
+    }
+
+    .mode-choice-card {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .mode-choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .choice-btn {
+      border: 1px solid var(--border-light);
+      background: #f8fafc;
+      border-radius: 18px;
+      padding: 16px;
+      text-align: left;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+    .choice-btn.active {
+      background: #eff6ff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+    .choice-btn small {
+      display: block;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-top: 5px;
+      line-height: 1.25;
+    }
+    .local-setup {
+      display: none;
+      margin-top: 14px;
+      border-top: 1px solid var(--border-light);
+      padding-top: 14px;
+    }
+    .local-setup.show { display: block; }
+    .local-mode .sidebar { display: none !important; }
+    .local-mode .layout { grid-template-columns: 1fr !important; }
+    .local-mode .live-sub,
+    .local-mode #statusPanel,
+    .local-mode #roomPanel,
+    .local-mode .online-mini,
+    .local-mode .chip { display: none !important; }
+    @media (max-width: 680px) {
+      .mode-choice-grid { grid-template-columns: 1fr; }
+    }
+
+    .room-panel-hidden {
+      display: none !important;
+    }
+    .game-side-note {
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border-light);
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
     .opponent-lock {
       margin-top: 10px;
       border-radius: 14px;
@@ -548,6 +619,77 @@
     }
 
 
+
+    #msg {
+      display: none !important;
+    }
+
+    .mode-choice-card {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .mode-choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .choice-btn {
+      border: 1px solid var(--border-light);
+      background: #f8fafc;
+      border-radius: 18px;
+      padding: 16px;
+      text-align: left;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+    .choice-btn.active {
+      background: #eff6ff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+    .choice-btn small {
+      display: block;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-top: 5px;
+      line-height: 1.25;
+    }
+    .local-setup {
+      display: none;
+      margin-top: 14px;
+      border-top: 1px solid var(--border-light);
+      padding-top: 14px;
+    }
+    .local-setup.show { display: block; }
+    .local-mode .sidebar { display: none !important; }
+    .local-mode .layout { grid-template-columns: 1fr !important; }
+    .local-mode .live-sub,
+    .local-mode #statusPanel,
+    .local-mode #roomPanel,
+    .local-mode .online-mini,
+    .local-mode .chip { display: none !important; }
+    @media (max-width: 680px) {
+      .mode-choice-grid { grid-template-columns: 1fr; }
+    }
+
+    .room-panel-hidden {
+      display: none !important;
+    }
+    .game-side-note {
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border-light);
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
     .opponent-lock {
       margin-top: 10px;
       border-radius: 14px;
@@ -742,12 +884,38 @@
           <div class="brand-logo">⚽</div>
           <div>
             <h1 class="brand-title">Turkey XoX</h1>
-            <div class="brand-subtitle">Canlı karşılıklı futbol grid</div>
+            <div class="brand-subtitle d-none"></div>
           </div>
         </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <div class="chip"><span class="pulse"></span><span id="dataBadge">Veri hazırlanıyor...</span></div>
           <div class="online-mini"><span class="mini-light"></span><span id="onlineText">Canlı</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mode-choice-card" id="modeChoiceCard">
+      <div class="mode-choice-grid">
+        <button class="choice-btn active" id="onlineModeBtn" onclick="choosePlayMode('online')">
+          <i class="bi bi-wifi me-1"></i> İki Cihaz / Online
+          <small>Oda kodu ile farklı telefonlardan oynanır.</small>
+        </button>
+        <button class="choice-btn" id="localModeBtn" onclick="choosePlayMode('local')">
+          <i class="bi bi-phone me-1"></i> Tek Cihaz
+          <small>Yan yana iki kişi aynı telefondan oynar.</small>
+        </button>
+      </div>
+      <div class="local-setup" id="localSetup">
+        <div class="row g-2">
+          <div class="col-12 col-md-5">
+            <input class="form-control player-name-input" id="localNameX" placeholder="1. oyuncu adı">
+          </div>
+          <div class="col-12 col-md-5">
+            <input class="form-control player-name-input" id="localNameO" placeholder="2. oyuncu adı">
+          </div>
+          <div class="col-12 col-md-2">
+            <button class="btn btn-primary fw-bold w-100" onclick="startLocalGame()">Başla</button>
+          </div>
         </div>
       </div>
     </section>
@@ -772,7 +940,7 @@
             <span class="live-dot"></span>
             <div>
               <div class="live-title" id="liveTitle">Oda bekleniyor</div>
-              <div class="live-sub" id="liveSub">Oda oluştur veya koda katıl.</div>
+              <div class="live-sub" id="liveSub">Durum üst panelde gösterilir.</div>
             </div>
           </div>
           <div class="live-pill" id="livePill">Hazır değil</div>
@@ -814,7 +982,7 @@
       </main>
 
       <aside class="sidebar">
-        <section class="side-card">
+        <section class="side-card" id="roomPanel">
           <div class="side-card-header">
             <h2><i class="bi bi-wifi me-2"></i>Canlı Oyun</h2>
           </div>
@@ -830,12 +998,13 @@
           </div>
         </section>
 
-        <section class="side-card">
+        <section class="side-card" id="statusPanel">
           <div class="side-card-header">
             <h2><i class="bi bi-info-circle me-2"></i>Durum</h2>
           </div>
           <div class="side-card-body">
-            <div class="small text-muted fw-semibold" id="statusText">Veri hazırlanıyor...</div>
+            <div class="small text-muted fw-semibold mb-3" id="statusText">Veri hazırlanıyor...</div>
+            <div class="game-side-note" id="gameSideNote">Oyun yok. Oda oluştur veya koda katıl.</div>
           </div>
         </section>
       </aside>
@@ -868,6 +1037,7 @@ const DATA_FILE="turkiye_grid_data_optimized.json";
 const MATCH_TARGET_SCORE=3;
 
 let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), teamPlayers=new Map(), playerSearch=[], answerCache=new Map();
+let playMode=localStorage.getItem("tx_play_mode")||"online";
 let dataReady=false, submitting=false, selectedPlayerName="", selectedPlayerObj=null, lastSuggestionPickAt=0;
 let mode="local", difficulty="easy", room=null, channel=null, selected=null;
 let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null, lastRoomCode=localStorage.getItem("tx_last_room_code")||"", myDisplayName=localStorage.getItem("tx_player_name")||"";
@@ -942,7 +1112,19 @@ function playerHasBothTeams(player,rowTeam,colTeam){
 
 function norm(s){return(s||"").toLocaleLowerCase("tr-TR").replaceAll("ı","i").replaceAll("İ","i").replaceAll("ş","s").replaceAll("ğ","g").replaceAll("ü","u").replaceAll("ö","o").replaceAll("ç","c").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();}
 function pairKey(a,b){return[a,b].sort((x,y)=>x.localeCompare(y,"tr")).join("|||")}
-function msg(t,type=""){const el=document.getElementById("msg");el.textContent=t;el.className="message "+type}
+function msg(t,type=""){
+  const el=document.getElementById("msg");
+  if(el){el.textContent=t;el.className="message "+type;}
+  const sub=document.getElementById("liveSub");
+  if(sub && t) sub.textContent=t;
+  const banner=document.getElementById("liveBanner");
+  if(banner && type){
+    banner.classList.remove("my-turn","wait-turn","wait-player");
+    if(type==="ok") banner.classList.add("my-turn");
+    else if(type==="bad") banner.classList.add("wait-turn");
+    else banner.classList.add("wait-player");
+  }
+}
 function status(t){document.getElementById("statusText").textContent=t}
 function toast(t){const el=document.getElementById("toast");el.textContent=t;el.style.display="block";setTimeout(()=>el.style.display="none",1600)}
 function hideSuggest(){document.getElementById("suggestions").style.display="none"}
@@ -1213,6 +1395,7 @@ function setInitialName(){
 }
 
 async function setTyping(active){
+  if(playMode==="local") return;
   if(!room || !sb || !mySide || !dataReady) return;
   const now=Date.now();
   if(active && now-lastTypingUpdate<900) return;
@@ -1267,6 +1450,7 @@ function updateOpponentLock(){
 }
 
 async function broadcastSelectedCell(r,c){
+  if(playMode==="local") return;
   if(!room || !sb || !mySide) return;
   try{
     await sb.from("rooms").update({
@@ -1279,6 +1463,7 @@ async function broadcastSelectedCell(r,c){
 }
 
 async function clearSelectedCellBroadcast(){
+  if(playMode==="local") return;
   if(!room || !sb || !mySide) return;
   try{
     await sb.from("rooms").update({
@@ -1353,7 +1538,7 @@ async function handleEndPrimary(){
 
 async function newMatch(){
   if(!room)return msg("Oda yok.","bad");
-  if(mySide!=="X")return msg("Yeni maçı oda sahibi başlatabilir.","bad");
+  if(playMode!=="local" && mySide!=="X")return msg("Yeni maçı oda sahibi başlatabilir.","bad");
   if(!dataReady)return msg("Veri hazır değil.","bad");
   const b=makeBoard();
   await updateRoom({
@@ -1382,7 +1567,63 @@ function closeEndModal(){
   document.getElementById("endModal")?.classList.remove("show");
 }
 
+function choosePlayMode(mode){
+  playMode=mode;
+  localStorage.setItem("tx_play_mode",mode);
+  document.body.classList.toggle("local-mode",mode==="local");
+  document.getElementById("onlineModeBtn")?.classList.toggle("active",mode==="online");
+  document.getElementById("localModeBtn")?.classList.toggle("active",mode==="local");
+  document.getElementById("localSetup")?.classList.toggle("show",mode==="local" && !room);
+  render();
+}
+
+function initPlayMode(){
+  choosePlayMode(playMode);
+}
+
+function startLocalGame(){
+  if(!dataReady)return msg("Veri henüz hazır değil. Biraz bekle.","bad");
+  const x=(document.getElementById("localNameX")?.value||"").trim();
+  const o=(document.getElementById("localNameO")?.value||"").trim();
+  if(!x || !o)return msg("İki oyuncu adını da yazmalısın.","bad");
+  const b=makeBoard();
+  room={
+    room_code:"TEK-CIHAZ",
+    host_id:"local-x",
+    guest_id:"local-o",
+    host_name:x,
+    guest_name:o,
+    status:"playing",
+    mode,
+    difficulty,
+    rows:b.rows,
+    cols:b.cols,
+    board:[[null,null,null],[null,null,null],[null,null,null]],
+    turn:"X",
+    winner:null,
+    score_x:0,
+    score_o:0,
+    typing_side:null,
+    typing_at:null,
+    selected_side:null,
+    selected_row:null,
+    selected_col:null,
+    selected_at:null
+  };
+  mySide="X";
+  selected=null;
+  document.getElementById("modeChoiceCard")?.classList.add("room-panel-hidden");
+  msg("Tek cihaz oyunu başladı.","ok");
+  render();
+}
+
+function localSwitchSide(){
+  if(playMode!=="local" || !room)return;
+  mySide=room.turn;
+}
+
 async function createRoom(){
+  if(playMode==="local")return startLocalGame();
   const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
   if(!requireDisplayName())return;
@@ -1401,6 +1642,7 @@ async function createRoom(){
   }
 }
 async function joinRoom(){
+  if(playMode==="local")return msg("Tek cihaz modunda oda kodu kullanılmaz.","bad");
   const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
   if(!requireDisplayName())return;
@@ -1489,6 +1731,12 @@ function subscribeRoom(code){
   }).subscribe();
 }
 async function updateRoom(fields){
+  if(playMode==="local"){
+    room={...room,...fields};
+    localSwitchSide();
+    render();
+    return;
+  }
   const {data,error}=await sb.from("rooms").update(fields).eq("room_code",room.room_code).select().single();
   if(error)return msg(error.message,"bad");
   room=data;render();
@@ -1496,7 +1744,7 @@ async function updateRoom(fields){
 async function shuffleBoard(){
   const btn = event?.currentTarget;
   if(!room)return msg("Önce oda oluştur veya katıl.","bad");
-  if(mySide!=="X")return msg("Eşleşmeleri sadece oda sahibi değiştirebilir.","bad");
+  if(playMode!=="local" && mySide!=="X")return msg("Eşleşmeleri sadece oda sahibi değiştirebilir.","bad");
   if(isMatchOver())return msg("Maç bitti. Yeni Maç butonunu kullan.","bad");
   if(!dataReady)return msg("Veri hazır değil.","bad");
   try{
@@ -1533,14 +1781,16 @@ async function passTurn(){
     setBusy(btn,true,"Gönderiliyor");
     msg("Pas geçiliyor...");
     const next=mySide==="X"?"O":"X";
-    await sb.from("moves").insert({
-      room_code:room.room_code,
-      player_side:mySide,
-      row_index:-1,
-      col_index:-1,
-      player_name:"PAS",
-      is_correct:false
-    });
+    if(playMode!=="local"){
+      await sb.from("moves").insert({
+        room_code:room.room_code,
+        player_side:mySide,
+        row_index:-1,
+        col_index:-1,
+        player_name:"PAS",
+        is_correct:false
+      });
+    }
     selected=null;
     selected=null;
     await setTyping(false);
@@ -1640,14 +1890,16 @@ async function submitGuess(){
   if(shakeCellKey) setTimeout(()=>{shakeCellKey="";render();},340);
 
   // Hamle geçmişi arka planda gitsin; oyun akışını bekletmesin.
-  sb.from("moves").insert({
-    room_code:previousRoom.room_code,
-    player_side:mySide,
-    row_index:moveCell.r,
-    col_index:moveCell.c,
-    player_name:name,
-    is_correct:ok
-  }).then(()=>{}).catch(()=>{});
+  if(playMode!=="local"){
+    sb.from("moves").insert({
+      room_code:previousRoom.room_code,
+      player_side:mySide,
+      row_index:moveCell.r,
+      col_index:moveCell.c,
+      player_name:name,
+      is_correct:ok
+    }).then(()=>{}).catch(()=>{});
+  }
 
   try{
     const {data,error}=await sb.from("rooms").update(fields).eq("room_code",previousRoom.room_code).select().single();
@@ -1681,7 +1933,7 @@ function selectCell(r,c){
   }
   selected={r,c};
   broadcastSelectedCell(r,c);
-  msg("Kare kilitlendi: "+room.rows[r]+" × "+room.cols[c]+". Oyuncuyu seçip Hamle Yap'a bas.","ok");
+  msg("Seçili kare: "+room.rows[r]+" × "+room.cols[c]+".","ok");
   render();
   setTimeout(()=>document.getElementById("playerInput")?.focus(),50);
 }
@@ -1773,7 +2025,7 @@ function updateLiveBanner(){
   if(!dataReady){
     banner.classList.add("wait-player");
     title.textContent="Veri hazırlanıyor";
-    sub.textContent="Oyuncu havuzu yüklenmeden hamle yapılamaz.";
+    sub.textContent="Oyuncu havuzu yükleniyor.";
     pill.textContent="Yükleniyor";
     if(online) online.textContent="Yükleniyor";
     return;
@@ -1781,7 +2033,7 @@ function updateLiveBanner(){
 
   if(!room){
     banner.classList.add("wait-player");
-    title.textContent="Oda bekleniyor";
+    title.textContent=playMode==="local"?"Tek cihaz oyunu":"Oda bekleniyor";
     sub.textContent="Oda oluştur veya kod ile katıl.";
     pill.textContent="Offline";
     if(online) online.textContent="Hazır";
@@ -1828,7 +2080,7 @@ function updateLiveBanner(){
   if(room.turn===mySide){
     banner.classList.add("my-turn");
     title.textContent="Sıra sende";
-    sub.textContent="Kare seçip futbolcu yaz veya pas geç.";
+    sub.textContent="Hamleni yap veya pas geç.";
     pill.textContent="Hamleni yap";
     if(online) online.textContent="Sıra sende";
   }else{
@@ -1840,10 +2092,32 @@ function updateLiveBanner(){
   }
 }
 
+function updatePanelsVisibility(){
+  const roomPanel=document.getElementById("roomPanel");
+  const modeCard=document.getElementById("modeChoiceCard");
+  const localSetup=document.getElementById("localSetup");
+  const note=document.getElementById("gameSideNote");
+  const inRoom=!!room;
+  if(modeCard) modeCard.classList.toggle("room-panel-hidden", inRoom);
+  if(localSetup) localSetup.classList.toggle("show", playMode==="local" && !inRoom);
+  if(roomPanel) roomPanel.classList.toggle("room-panel-hidden", inRoom || playMode==="local");
+  document.body.classList.toggle("local-mode",playMode==="local");
+  if(note){
+    if(!room) note.textContent="Oyun yok. Oda oluştur veya koda katıl.";
+    else if(room.status==="closed") note.textContent="Oda kapandı. Yeni oda oluşturabilirsin.";
+    else if(!room.host_id || !room.guest_id) note.textContent="Oda kodu: "+(room.room_code||"-")+" · Rakip bekleniyor.";
+    else if(isMatchOver()) note.textContent="Maç bitti. Yeni maç başlatılabilir.";
+    else if(room.winner) note.textContent="Raund bitti. Yeni tablo ile devam.";
+    else note.textContent=(room.turn===mySide?"Sıra sende.":"Rakibin hamlesi bekleniyor.");
+  }
+}
+
 function render(){
+  if(playMode==="local" && room) mySide=room.turn;
+  updatePanelsVisibility();
   updateLiveBanner();
   const rows=room?.rows||["-","-","-"],cols=room?.cols||["-","-","-"],board=room?.board||[[null,null,null],[null,null,null],[null,null,null]];
-  document.getElementById("roomText").textContent=room?.room_code||"-";
+  document.getElementById("roomText").textContent=playMode==="local"?(room?"Tek cihaz":"-"):(room?.room_code||"-");
   document.getElementById("roomCodeBox").textContent=room?.room_code||"------";
   document.getElementById("sideText").textContent=mySide?(mySide==="X"?"X / "+hostLabel():"O / "+guestLabel()):"-";
   document.getElementById("turnText").textContent=room?.winner?("Kazanan "+(room.winner==="X"?hostLabel():guestLabel())):(room?(room.turn===mySide?"Sende":opponentLabel()):"-");
@@ -1902,6 +2176,14 @@ function render(){
 }
 async function leaveRoom(){
   const btn = event?.currentTarget;
+  if(playMode==="local"){
+    room=null; mySide=null; selected=null;
+    document.getElementById("modeChoiceCard")?.classList.remove("room-panel-hidden");
+    document.getElementById("localSetup")?.classList.add("show");
+    render();
+    msg("Tek cihaz oyunundan çıktın.");
+    return;
+  }
   if(!room){
     mySide=null; selected=null; render(); msg("Odadan çıktın."); return;
   }
@@ -1999,6 +2281,7 @@ function prefillLastRoomCode(){
 preventGesture();
 initSupabase();
 setInitialName();
+initPlayMode();
 prefillLastRoomCode();
 loadData();
 render();
