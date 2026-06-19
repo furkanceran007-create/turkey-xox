@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v4.6</title>
+  <title>Turkey XoX v4.7</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -536,6 +536,65 @@ const localTeamsBase=new Set(["Galatasaray","Fenerbahçe","Beşiktaş","Trabzons
 const euroTeamsBase=new Set(["Real Madrid","Barcelona","Atletico Madrid","Sevilla","Valencia","Villarreal","Manchester United","Manchester City","Chelsea","Arsenal","Liverpool","Tottenham","Newcastle United","Inter","AC Milan","Juventus","Roma","Napoli","Lazio","Fiorentina","PSG","Lyon","Marseille","Monaco","Lille","Bayern Münih","Bayern Munich","Dortmund","RB Leipzig","Schalke 04","Werder Bremen","Wolfsburg","Ajax","PSV","Feyenoord","Porto","Benfica","Sporting","Braga","Olympiacos","Panathinaikos","AEK Athens","Celtic","Rangers"]);
 const knownExtraTeamsBase=new Set(["Boca Juniors","River Plate","Santos","Flamengo","Palmeiras","Corinthians","Sao Paulo","Gremio","Cruzeiro","Vasco da Gama","Fluminense","Internacional","Atletico Mineiro","Botafogo","LA Galaxy","Inter Miami","Al Nassr","Al Hilal","Al Ahli","Al Ittihad","Shakhtar Donetsk","Dynamo Kyiv","Zenit","CSKA Moskova","Spartak Moskova","Anderlecht","Club Brugge","Basel","Young Boys","Dinamo Zagreb","Red Star","Partizan","Bayer Leverkusen","Leicester City","Everton","West Ham","Aston Villa","Real Betis","Real Sociedad","Atalanta","Nice","Rennes","Bordeaux"]);
 
+
+const playerAliases=new Map([
+  ["q7","Ricardo Quaresma"],
+  ["quaresma","Ricardo Quaresma"],
+  ["alex","Alex de Souza"],
+  ["alex de souza","Alex de Souza"],
+  ["hagi","Gheorghe Hagi"],
+  ["drogba","Didier Drogba"],
+  ["sneijder","Wesley Sneijder"],
+  ["eto","Samuel Eto'o"],
+  ["etoo","Samuel Eto'o"],
+  ["eto o","Samuel Eto'o"],
+  ["rvp","Robin van Persie"],
+  ["van persie","Robin van Persie"],
+  ["icardi","Mauro Icardi"],
+  ["dzeko","Edin Dzeko"],
+  ["talisca","Talisca"],
+  ["arda","Arda Turan"],
+  ["mesut","Mesut Özil"],
+  ["mesut ozil","Mesut Özil"],
+  ["nani","Nani"],
+  ["anelka","Nicolas Anelka"],
+  ["roberto carlos","Roberto Carlos"]
+]);
+
+function findPlayerSmart(rawName){
+  const q=norm(rawName);
+  if(!q)return null;
+
+  const alias=playerAliases.get(q);
+  if(alias){
+    const p=playerByNorm.get(norm(alias));
+    if(p)return p;
+  }
+
+  let p=playerByNorm.get(q);
+  if(p)return p;
+
+  // Mobilde aksan/boşluk farkı veya kısa yazım için güvenli eşleşme.
+  const starts=[];
+  const contains=[];
+  for(const item of playerSearch){
+    if(item.n===q)return item.p;
+    if(item.n.startsWith(q))starts.push(item.p);
+    else if(item.n.includes(q))contains.push(item.p);
+    if(starts.length>8 && contains.length>8)break;
+  }
+
+  if(starts.length===1)return starts[0];
+  if(!starts.length && contains.length===1)return contains[0];
+
+  return null;
+}
+
+function playerHasBothTeams(player,rowTeam,colTeam){
+  if(!player || !Array.isArray(player.teams))return false;
+  return player.teams.includes(rowTeam) && player.teams.includes(colTeam);
+}
+
 function norm(s){return(s||"").toLocaleLowerCase("tr-TR").replaceAll("ı","i").replaceAll("İ","i").replaceAll("ş","s").replaceAll("ğ","g").replaceAll("ü","u").replaceAll("ö","o").replaceAll("ç","c").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();}
 function pairKey(a,b){return[a,b].sort((x,y)=>x.localeCompare(y,"tr")).join("|||")}
 function msg(t,type=""){const el=document.getElementById("msg");el.textContent=t;el.className="message "+type}
@@ -942,9 +1001,10 @@ async function submitGuess(){
     submitting=true;
     setBusy(btn,true,"Kontrol ediliyor");
     msg("Cevap kontrol ediliyor...");
-    const p=playerByNorm.get(norm(name));
-    const ans=answers(room.rows[moveCell.r],room.cols[moveCell.c]);
-    const ok=!!(p&&ans.some(x=>norm(x.name)===norm(p.name)));
+    const p=findPlayerSmart(name);
+    const rowTeam=room.rows[moveCell.r];
+    const colTeam=room.cols[moveCell.c];
+    const ok=playerHasBothTeams(p,rowTeam,colTeam);
     const b=JSON.parse(JSON.stringify(room.board));
     const next=mySide==="X"?"O":"X";
     const fields={turn:next};
@@ -961,7 +1021,8 @@ async function submitGuess(){
       }
       msg("Doğru. Hamle işlendi.","ok");
     }else{
-      msg("Yanlış. Sıra rakibe geçti.","bad");
+      if(!p) msg("Oyuncu veri havuzunda bulunamadı. Sıra rakibe geçti.","bad");
+      else msg("Yanlış. Bu oyuncu seçili iki takımda da yok. Sıra rakibe geçti.","bad");
     }
 
     await sb.from("moves").insert({
@@ -997,7 +1058,7 @@ function selectCell(r,c){
     return;
   }
   selected={r,c};
-  msg("Kare kilitlendi. Şimdi futbolcu adını seç ve Hamle Yap'a bas.","ok");
+  msg("Kare kilitlendi: "+room.rows[r]+" × "+room.cols[c]+". Oyuncuyu seçip Hamle Yap'a bas.","ok");
   render();
   setTimeout(()=>document.getElementById("playerInput")?.focus(),50);
 }
@@ -1017,7 +1078,7 @@ function suggest(){
       if(list.length>=10)break;
     }
   }
-  box.innerHTML=list.map(p=>`<div class="suggestion" onmousedown="pickName(event,'${p.name.replaceAll("'","\\'")}')" ontouchstart="pickName(event,'${p.name.replaceAll("'","\\'")}')">${p.name}</div>`).join("");
+  box.innerHTML=list.map(p=>`<div class="suggestion" onpointerdown="pickName(event,'${p.name.replaceAll("'","\\'")}')">${p.name}</div>`).join("");
   box.style.display=list.length?"block":"none";
 }
 function pickName(ev,n){
@@ -1025,6 +1086,7 @@ function pickName(ev,n){
     ev.preventDefault();
     ev.stopPropagation();
   }
+  if(!n && typeof ev==="string") n=ev;
   document.getElementById("playerInput").value=n;
   hideSuggest();
   msg("Oyuncu seçildi. Hamle yapmak için Hamle Yap'a bas.");
