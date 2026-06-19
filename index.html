@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v4.1</title>
+  <title>Turkey XoX v4.5</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -137,6 +137,20 @@
     }
     .grid td.empty { cursor: pointer; border: 2px dashed var(--border-dark); background: #f8fafc; box-shadow: none; }
     .grid td.empty:hover { border-color: var(--primary); background: #eff6ff; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+    .grid td.disabled-turn {
+      cursor: not-allowed;
+      opacity: .55;
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .grid td.disabled-turn .plus {
+      background: #e2e8f0;
+      color: #94a3b8;
+    }
+
     .grid td.selected { border-color: var(--primary); background: #eff6ff; border-style: solid; border-width: 2px; box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
 
     .plus {
@@ -215,6 +229,108 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+
+
+    .live-banner {
+      margin: 18px 24px 0;
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--border-light);
+      background: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+    .live-banner.my-turn {
+      background: linear-gradient(135deg, #ecfdf5, #ffffff);
+      border-color: #86efac;
+    }
+    .live-banner.wait-turn {
+      background: linear-gradient(135deg, #fff7ed, #ffffff);
+      border-color: #fdba74;
+    }
+    .live-banner.wait-player {
+      background: linear-gradient(135deg, #eff6ff, #ffffff);
+      border-color: #93c5fd;
+    }
+    .live-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 999px;
+      display: inline-block;
+      background: #94a3b8;
+      box-shadow: 0 0 0 5px rgba(148, 163, 184, .16);
+      flex: 0 0 auto;
+    }
+    .live-banner.my-turn .live-dot {
+      background: var(--success);
+      box-shadow: 0 0 0 5px rgba(16, 185, 129, .18);
+    }
+    .live-banner.wait-turn .live-dot {
+      background: var(--warning);
+      box-shadow: 0 0 0 5px rgba(245, 158, 11, .18);
+    }
+    .live-banner.wait-player .live-dot {
+      background: var(--primary);
+      box-shadow: 0 0 0 5px rgba(37, 99, 235, .16);
+    }
+    .live-title {
+      font-weight: 900;
+      font-size: 16px;
+      line-height: 1.1;
+    }
+    .live-sub {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+    .live-pill {
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      border: 1px solid #e2e8f0;
+    }
+    .online-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #e2e8f0;
+    }
+    .online-mini .mini-light {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: #10b981;
+      box-shadow: 0 0 0 4px rgba(16,185,129,.2);
+    }
+    @media (max-width: 680px) {
+      .live-banner {
+        margin: 12px 10px 0;
+        padding: 12px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .live-title { font-size: 15px; }
+      .live-pill { width: 100%; text-align: center; }
+    }
+
+    .action-row { align-items: center; }
+    .action-row .btn { min-height: 42px; }
+    @media (max-width: 680px) {
+      .action-row { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px !important; }
+      .action-row .btn { width: 100%; margin: 0 !important; padding-left: 10px !important; padding-right: 10px !important; }
+      .action-row .btn-exit { grid-column: 1 / -1; }
+    }
+
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -265,6 +381,7 @@
         </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <div class="chip"><span class="pulse"></span><span id="dataBadge">Veri hazırlanıyor...</span></div>
+          <div class="online-mini"><span class="mini-light"></span><span id="onlineText">Canlı</span></div>
         </div>
       </div>
     </section>
@@ -282,6 +399,17 @@
             <button class="mode-btn" data-difficulty="medium" onclick="setDifficulty('medium')">Orta</button>
             <button class="mode-btn" data-difficulty="hard" onclick="setDifficulty('hard')">Zor</button>
           </div>
+        </div>
+
+        <div class="live-banner wait-player" id="liveBanner">
+          <div class="d-flex align-items-center gap-3">
+            <span class="live-dot"></span>
+            <div>
+              <div class="live-title" id="liveTitle">Oda bekleniyor</div>
+              <div class="live-sub" id="liveSub">Oda oluştur veya koda katıl.</div>
+            </div>
+          </div>
+          <div class="live-pill" id="livePill">Hazır değil</div>
         </div>
 
         <div class="stat-strip">
@@ -308,10 +436,11 @@
           </div>
           <div id="msg" class="message">Oda oluştur veya koda katıl.</div>
 
-          <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+          <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top action-row">
             <button class="btn btn-dark fw-bold rounded-pill px-4" onclick="shuffleBoard()"><i class="bi bi-shuffle me-1"></i> Karıştır</button>
             <button class="btn btn-outline-secondary fw-bold rounded-pill px-4" onclick="newRound()"><i class="bi bi-arrow-repeat me-1"></i> Yeni Tablo</button>
-            <button class="btn btn-outline-danger fw-bold rounded-pill px-3 ms-auto" onclick="leaveRoom()"><i class="bi bi-box-arrow-right me-1"></i> Çık</button>
+            <button class="btn btn-outline-primary fw-bold rounded-pill px-4" onclick="passTurn()"><i class="bi bi-skip-forward me-1"></i> Pas Geç</button>
+            <button class="btn btn-outline-danger fw-bold rounded-pill px-3 ms-auto btn-exit" onclick="leaveRoom()"><i class="bi bi-box-arrow-right me-1"></i> Çık</button>
           </div>
         </div>
       </main>
@@ -352,7 +481,7 @@ const DATA_FILE="turkiye_grid_data_optimized.json";
 
 let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), teamPlayers=new Map(), playerSearch=[], answerCache=new Map();
 let mode="local", difficulty="easy", room=null, channel=null, selected=null;
-let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null;
+let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null, lastRoomCode=localStorage.getItem("tx_last_room_code")||"";
 let lastBoardSignature="";
 localStorage.setItem("tx_player_id",myId);
 
@@ -599,7 +728,7 @@ async function createRoom(){
     const obj={room_code:code,host_id:myId,status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0,winner:null};
     const {data,error}=await sb.from("rooms").insert(obj).select().single();
     if(error){msg(error.message,"bad");return;}
-    room=data;mySide="X";subscribeRoom(code);msg("Oda kodu: "+code,"ok");render();
+    room=data;mySide="X";lastRoomCode=code;localStorage.setItem("tx_last_room_code",code);subscribeRoom(code);msg("Oda kodu: "+code,"ok");render();
   }finally{
     setBusy(btn,false);
   }
@@ -614,10 +743,53 @@ async function joinRoom(){
     msg("Odaya katılınıyor...");
     status("Odaya katılınıyor...");
     const q=await sb.from("rooms").select("*").eq("room_code",code).single();
-    if(q.error){msg("Oda bulunamadı.","bad");return;}
-    const u=await sb.from("rooms").update({guest_id:myId,status:"playing"}).eq("room_code",code).select().single();
-    if(u.error){msg(u.error.message,"bad");return;}
-    room=u.data;mySide="O";mode=room.mode||mode;difficulty=room.difficulty||difficulty;syncButtons();subscribeRoom(code);msg("Odaya katıldın.","ok");render();
+    if(q.error||!q.data){msg("Oda bulunamadı.","bad");return;}
+
+    let current=q.data;
+    let updates={};
+
+    // Aynı oyuncu geri dönüyorsa kendi tarafına bağla.
+    if(current.host_id===myId){
+      mySide="X";
+      if(current.status==="closed") updates.status=current.guest_id?"playing":"waiting";
+    }
+    else if(current.guest_id===myId){
+      mySide="O";
+      if(current.status==="closed") updates.status=current.host_id?"playing":"waiting";
+    }
+    // Host tarafı boşsa ve odada biri varsa host olarak geri/dahil ol.
+    else if(!current.host_id && current.guest_id!==myId){
+      mySide="X";
+      updates.host_id=myId;
+      updates.status=current.guest_id?"playing":"waiting";
+    }
+    // Guest tarafı boşsa guest olarak katıl.
+    else if(!current.guest_id && current.host_id!==myId){
+      mySide="O";
+      updates.guest_id=myId;
+      updates.status=current.host_id?"playing":"waiting";
+    }
+    else{
+      msg("Oda dolu. Başka bir oda oluştur.","bad");
+      return;
+    }
+
+    let data=current;
+    if(Object.keys(updates).length){
+      const u=await sb.from("rooms").update(updates).eq("room_code",code).select().single();
+      if(u.error){msg(u.error.message,"bad");return;}
+      data=u.data;
+    }
+
+    room=data;
+    lastRoomCode=code;
+    localStorage.setItem("tx_last_room_code",code);
+    mode=room.mode||mode;
+    difficulty=room.difficulty||difficulty;
+    syncButtons();
+    subscribeRoom(code);
+    msg("Odaya bağlandın. Oyun kaldığı yerden devam ediyor.","ok");
+    render();
   }finally{
     setBusy(btn,false);
   }
@@ -630,8 +802,9 @@ function subscribeRoom(code){
     difficulty=room.difficulty||difficulty;
     syncButtons();
     render();
-    if(room.status==="closed" || !room.host_id) msg("Oda sahibi oyundan çıktı. Yeni oda oluşturulmalı.","bad");
-    else if(mySide==="X" && !room.guest_id) msg("Rakip odadan çıktı. Yeni rakip bekleniyor.");
+    if(room.status==="closed" && !room.host_id && !room.guest_id) msg("İki oyuncu da çıktı. Oda kapandı.","bad");
+    else if(!room.host_id || !room.guest_id) msg("Rakip odadan çıktı. Aynı kodla geri dönebilir.");
+    else if(room.turn===mySide) msg("Sıra sende.","ok");
   }).subscribe();
 }
 async function updateRoom(fields){
@@ -665,10 +838,37 @@ function winner(b){
   for(const l of L){const m=l.map(([r,c])=>b[r][c]?.mark);if(m[0]&&m.every(x=>x===m[0]))return m[0]}
   return null;
 }
+async function passTurn(){
+  const btn = event?.currentTarget;
+  if(!room)return msg("Oda yok.","bad");
+  if(room.winner)return msg("Oyun bitti. Yeni tablo aç.","bad");
+  if(!room.host_id || !room.guest_id)return msg("Diğer oyuncu bekleniyor.","bad");
+  if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
+  try{
+    setBusy(btn,true,"Pas geçiliyor");
+    msg("Pas geçiliyor...");
+    const next=mySide==="X"?"O":"X";
+    await sb.from("moves").insert({
+      room_code:room.room_code,
+      player_side:mySide,
+      row_index:-1,
+      col_index:-1,
+      player_name:"PAS",
+      is_correct:false
+    });
+    selected=null;
+    await updateRoom({turn:next});
+    msg("Pas geçildi. Sıra rakipte.");
+  }finally{
+    setBusy(btn,false);
+  }
+}
+
 async function submitGuess(){
   const btn = event?.currentTarget;
   if(!room)return msg("Oda yok.","bad");
   if(room.winner)return msg("Oyun bitti. Yeni tablo aç.","bad");
+  if(!room.host_id || !room.guest_id)return msg("Diğer oyuncu bekleniyor.","bad");
   if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
   if(!selected)return msg("Kare seç.","bad");
   if(room.board[selected.r][selected.c])return msg("Bu kare dolu.","bad");
@@ -698,7 +898,18 @@ async function submitGuess(){
     setBusy(btn,false);
   }
 }
-function selectCell(r,c){if(!room||room.board[r][c]||room.winner)return;selected={r,c};render()}
+function canPlay(){
+  return room && !room.winner && mySide && room.turn===mySide && room.status!=="closed" && room.host_id && room.guest_id;
+}
+function selectCell(r,c){
+  if(!room||room.board[r][c]||room.winner)return;
+  if(!canPlay()){
+    msg("Sıra sende değil.","bad");
+    return;
+  }
+  selected={r,c};
+  render();
+}
 function setMode(m){mode=m;syncButtons();if(room&&mySide==="X")shuffleBoard()}
 function setDifficulty(d){difficulty=d;syncButtons();if(room&&mySide==="X")shuffleBoard()}
 function syncButtons(){
@@ -721,18 +932,82 @@ function suggest(){
 function pickName(n){document.getElementById("playerInput").value=n;hideSuggest()}
 function handleKey(e){if(e.key==="Enter")submitGuess()}
 
+function updateLiveBanner(){
+  const banner=document.getElementById("liveBanner");
+  const title=document.getElementById("liveTitle");
+  const sub=document.getElementById("liveSub");
+  const pill=document.getElementById("livePill");
+  const online=document.getElementById("onlineText");
+  if(!banner||!title||!sub||!pill)return;
+
+  banner.classList.remove("my-turn","wait-turn","wait-player");
+
+  if(!room){
+    banner.classList.add("wait-player");
+    title.textContent="Oda bekleniyor";
+    sub.textContent="Oda oluştur veya kod ile katıl.";
+    pill.textContent="Offline";
+    if(online) online.textContent="Hazır";
+    return;
+  }
+
+  if(room.status==="closed" && !room.host_id && !room.guest_id){
+    banner.classList.add("wait-player");
+    title.textContent="Oda kapandı";
+    sub.textContent="İki oyuncu da çıktı.";
+    pill.textContent="Kapalı";
+    if(online) online.textContent="Kapalı";
+    return;
+  }
+
+  if(!room.host_id || !room.guest_id){
+    banner.classList.add("wait-player");
+    title.textContent="Rakip bekleniyor";
+    sub.textContent="Oda kodunu arkadaşına gönder: " + (room.room_code || "-");
+    pill.textContent="Beklemede";
+    if(online) online.textContent="Beklemede";
+    return;
+  }
+
+  if(room.winner){
+    banner.classList.add(room.winner===mySide ? "my-turn" : "wait-turn");
+    title.textContent = room.winner===mySide ? "Kazandın" : "Rakip kazandı";
+    sub.textContent = "Yeni tablo için oda sahibi karıştırabilir.";
+    pill.textContent = "Oyun bitti";
+    if(online) online.textContent="Oyun bitti";
+    return;
+  }
+
+  if(room.turn===mySide){
+    banner.classList.add("my-turn");
+    title.textContent="Sıra sende";
+    sub.textContent="Kare seçip futbolcu yaz veya pas geç.";
+    pill.textContent="Hamleni yap";
+    if(online) online.textContent="Sıra sende";
+  }else{
+    banner.classList.add("wait-turn");
+    title.textContent="Rakipte";
+    sub.textContent="Rakibin hamlesi bekleniyor.";
+    pill.textContent="Bekleniyor";
+    if(online) online.textContent="Rakipte";
+  }
+}
+
 function render(){
+  updateLiveBanner();
   const rows=room?.rows||["-","-","-"],cols=room?.cols||["-","-","-"],board=room?.board||[[null,null,null],[null,null,null],[null,null,null]];
   document.getElementById("roomText").textContent=room?.room_code||"-";
   document.getElementById("roomCodeBox").textContent=room?.room_code||"------";
-  document.getElementById("sideText").textContent=mySide||"-";
-  document.getElementById("turnText").textContent=room?.winner?("Kazanan "+room.winner):(room?.turn||"-");
+  document.getElementById("sideText").textContent=mySide?(mySide==="X"?"X / Oda sahibi":"O / Misafir"):"-";
+  document.getElementById("turnText").textContent=room?.winner?("Kazanan "+room.winner):(room?(room.turn===mySide?"Sende":"Rakipte"):"-");
   document.getElementById("scoreText").textContent=(room?.score_x||0)+" - "+(room?.score_o||0);
   let connected="Oda yok.";
   if(room){
-    if(room.status==="closed" || !room.host_id) connected="Oda sahibi çıktı. Yeni oda oluştur.";
-    else if(room.guest_id&&room.host_id) connected="İki oyuncu bağlı.";
-    else connected="Oda açık, rakip bekleniyor.";
+    if(room.status==="closed" && !room.host_id && !room.guest_id) connected="Oda kapandı.";
+    else if(room.host_id&&room.guest_id){
+      connected = room.turn===mySide ? "Sıra sende." : "Rakibin hamlesi bekleniyor.";
+    }
+    else connected="Oyuncu bekleniyor. Aynı kodla tekrar girilebilir.";
   }
   status(players.length?connected:"Veri hazırlanıyor...");
 
@@ -745,7 +1020,8 @@ function render(){
         h+=`<td><span class="mark ${cell.mark.toLowerCase()}">${cell.mark}</span><span class="player-name">${cell.player}</span></td>`;
       }else{
         const sel=selected&&selected.r===r&&selected.c===c;
-        h+=`<td class="empty ${sel?'selected':''}" onclick="selectCell(${r},${c})"><span class="cell-tag">${cnt}</span><span class="plus">+</span></td>`;
+        const disabled=!canPlay();
+        h+=`<td class="empty ${sel?'selected':''} ${disabled?'disabled-turn':''}" onclick="selectCell(${r},${c})"><span class="cell-tag">${cnt}</span><span class="plus">+</span></td>`;
       }
     }
     h+="</tr>";
@@ -764,17 +1040,20 @@ async function leaveRoom(){
     const isGuest = mySide==="O" && room.guest_id===myId;
 
     if(sb){
+      // Güncel odayı tekrar oku; diğer oyuncu hâlâ var mı netleşsin.
+      const fresh=await sb.from("rooms").select("*").eq("room_code",code).single();
+      const r=fresh.data||room;
+      const otherExists = isHost ? !!r.guest_id : !!r.host_id;
+
       if(isHost){
         await sb.from("rooms").update({
           host_id:null,
-          status:"closed",
-          winner:null
+          status: otherExists ? "waiting" : "closed"
         }).eq("room_code",code);
       }else if(isGuest){
         await sb.from("rooms").update({
           guest_id:null,
-          status:"waiting",
-          turn:"X"
+          status: otherExists ? "waiting" : "closed"
         }).eq("room_code",code);
       }
     }
@@ -782,7 +1061,7 @@ async function leaveRoom(){
     if(channel) sb.removeChannel(channel);
     room=null; mySide=null; selected=null;
     render();
-    msg("Odadan çıktın.");
+    msg("Odadan çıktın. Aynı kodla tekrar girersen devam edebilirsin.");
   }finally{
     setBusy(btn,false);
   }
@@ -804,8 +1083,48 @@ window.addEventListener("beforeunload",()=>{
   }catch(e){}
 });
 
+
+async function refreshRoom(){
+  if(!room || !sb) return;
+  const code=room.room_code;
+  try{
+    status("Bağlantı yenileniyor...");
+    const {data,error}=await sb.from("rooms").select("*").eq("room_code",code).single();
+    if(error || !data){
+      msg("Oda bilgisi yenilenemedi.","bad");
+      return;
+    }
+    room=data;
+    mode=room.mode||mode;
+    difficulty=room.difficulty||difficulty;
+    syncButtons();
+    subscribeRoom(code);
+    render();
+    status("Bağlantı yenilendi.");
+  }catch(e){
+    status("Bağlantı bekleniyor...");
+  }
+}
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"){
+    refreshRoom();
+  }
+});
+
+window.addEventListener("focus",()=>{
+  refreshRoom();
+});
+
+function prefillLastRoomCode(){
+  if(lastRoomCode){
+    const inp=document.getElementById("joinCode");
+    if(inp && !inp.value) inp.value=lastRoomCode;
+  }
+}
 preventGesture();
 initSupabase();
+prefillLastRoomCode();
 loadData();
 render();
 </script>
