@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v4.7</title>
+  <title>Turkey XoX v4.9</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -931,7 +931,7 @@ async function shuffleBoard(){
   if(mySide!=="X")return msg("Eşleşmeleri sadece oda sahibi değiştirebilir.","bad");
   if(!dataReady)return msg("Veri hazır değil.","bad");
   try{
-    setBusy(btn,true,"Karıştırılıyor");
+    setBusy(btn,true,"Hazırlanıyor");
     msg("Yeni eşleşmeler hazırlanıyor...");
     status("Yeni eşleşmeler hazırlanıyor...");
     const before=boardSignature(room.rows||[],room.cols||[]);
@@ -960,7 +960,7 @@ async function passTurn(){
   if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
   try{
     submitting=true;
-    setBusy(btn,true,"Pas geçiliyor");
+    setBusy(btn,true,"Gönderiliyor");
     msg("Pas geçiliyor...");
     const next=mySide==="X"?"O":"X";
     await sb.from("moves").insert({
@@ -981,6 +981,22 @@ async function passTurn(){
   }
 }
 
+function usedPlayerNames(){
+  if(!room || !Array.isArray(room.board)) return new Set();
+  const used=new Set();
+  for(const row of room.board){
+    for(const cell of row){
+      if(cell && cell.player) used.add(norm(cell.player));
+    }
+  }
+  return used;
+}
+
+function isPlayerAlreadyUsed(player){
+  if(!player) return false;
+  return usedPlayerNames().has(norm(player.name));
+}
+
 async function submitGuess(){
   const btn = event?.currentTarget;
   if(submitting)return;
@@ -997,47 +1013,70 @@ async function submitGuess(){
   const name=document.getElementById("playerInput").value.trim();
   if(!name)return msg("Oyuncu yaz.","bad");
 
-  try{
-    submitting=true;
-    setBusy(btn,true,"Kontrol ediliyor");
-    msg("Cevap kontrol ediliyor...");
-    const p=findPlayerSmart(name);
-    const rowTeam=room.rows[moveCell.r];
-    const colTeam=room.cols[moveCell.c];
-    const ok=playerHasBothTeams(p,rowTeam,colTeam);
-    const b=JSON.parse(JSON.stringify(room.board));
-    const next=mySide==="X"?"O":"X";
-    const fields={turn:next};
+  submitting=true;
+  setBusy(btn,true,"Gönderiliyor");
 
-    if(ok){
-      b[moveCell.r][moveCell.c]={mark:mySide,player:p.name};
-      const w=winner(b);
-      fields.board=b;
-      if(w){
-        fields.winner=w;
-        fields.status="finished";
-        if(w==="X")fields.score_x=(room.score_x||0)+1;
-        else fields.score_o=(room.score_o||0)+1;
-      }
-      msg("Doğru. Hamle işlendi.","ok");
-    }else{
-      if(!p) msg("Oyuncu veri havuzunda bulunamadı. Sıra rakibe geçti.","bad");
-      else msg("Yanlış. Bu oyuncu seçili iki takımda da yok. Sıra rakibe geçti.","bad");
+  const previousRoom=JSON.parse(JSON.stringify(room));
+  const p=findPlayerSmart(name);
+  const rowTeam=room.rows[moveCell.r];
+  const colTeam=room.cols[moveCell.c];
+  const ok=playerHasBothTeams(p,rowTeam,colTeam);
+
+  if(ok && isPlayerAlreadyUsed(p)){
+    submitting=false;
+    setBusy(btn,false);
+    msg("Bu oyuncu bu oyunda zaten kullanıldı. Başka oyuncu seç.","bad");
+    return;
+  }
+
+  const b=JSON.parse(JSON.stringify(room.board));
+  const next=mySide==="X"?"O":"X";
+  const fields={turn:next};
+
+  if(ok){
+    b[moveCell.r][moveCell.c]={mark:mySide,player:p.name};
+    const w=winner(b);
+    fields.board=b;
+    if(w){
+      fields.winner=w;
+      fields.status="finished";
+      if(w==="X")fields.score_x=(room.score_x||0)+1;
+      else fields.score_o=(room.score_o||0)+1;
     }
+    msg("Doğru. Hamle gönderiliyor...","ok");
+  }else{
+    if(!p) msg("Oyuncu bulunamadı. Sıra rakibe geçiyor...","bad");
+    else msg("Yanlış. Sıra rakibe geçiyor...","bad");
+  }
 
-    await sb.from("moves").insert({
-      room_code:room.room_code,
-      player_side:mySide,
-      row_index:moveCell.r,
-      col_index:moveCell.c,
-      player_name:name,
-      is_correct:ok
-    });
+  // Ekranı hemen güncelle: kullanıcı 4-5 saniye boşta beklemesin.
+  room={...room,...fields};
+  selected=null;
+  document.getElementById("playerInput").value="";
+  hideSuggest();
+  render();
 
-    selected=null;
-    document.getElementById("playerInput").value="";
-    hideSuggest();
-    await updateRoom(fields);
+  // Hamle geçmişi arka planda gitsin; oyun akışını bekletmesin.
+  sb.from("moves").insert({
+    room_code:previousRoom.room_code,
+    player_side:mySide,
+    row_index:moveCell.r,
+    col_index:moveCell.c,
+    player_name:name,
+    is_correct:ok
+  }).then(()=>{}).catch(()=>{});
+
+  try{
+    const {data,error}=await sb.from("rooms").update(fields).eq("room_code",previousRoom.room_code).select().single();
+    if(error) throw error;
+    room=data;
+    render();
+    if(ok) msg("Doğru. Sıra rakipte.","ok");
+    else msg("Yanlış. Sıra rakipte.","bad");
+  }catch(e){
+    room=previousRoom;
+    render();
+    msg("Hamle gönderilemedi. Bağlantıyı kontrol edip tekrar dene.","bad");
   }finally{
     submitting=false;
     setBusy(btn,false);
