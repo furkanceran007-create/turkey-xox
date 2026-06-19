@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v5.5</title>
+  <title>Turkey XoX v5.7</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -282,6 +282,68 @@
       75% { transform: translateX(-3px); }
     }
 
+
+    .opponent-lock {
+      margin-top: 10px;
+      border-radius: 14px;
+      background: #fff7ed;
+      color: #9a3412;
+      border: 1px solid #fed7aa;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      display: none;
+    }
+    .opponent-lock.show { display: block; }
+    .suggestion.used {
+      opacity: .45;
+      cursor: not-allowed;
+      background: #f8fafc;
+    }
+    .suggestion .used-badge {
+      float: right;
+      font-size: 11px;
+      color: #991b1b;
+      font-weight: 900;
+    }
+    .ready-flash {
+      position: fixed;
+      inset: 0;
+      z-index: 10001;
+      background: rgba(15,23,42,.58);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .ready-flash.show { display: flex; }
+    .ready-card {
+      background: #fff;
+      border-radius: 28px;
+      padding: 28px;
+      width: min(420px,100%);
+      text-align: center;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-lg);
+      animation: readyPop .28s ease-out;
+    }
+    .ready-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 14px;
+      background: #ecfdf5;
+      color: #047857;
+      font-size: 32px;
+    }
+    @keyframes readyPop {
+      from { transform: scale(.94); opacity: .6; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
     .player-name-input {
       border-radius: var(--radius-md);
       border: 1px solid var(--border-dark);
@@ -485,6 +547,68 @@
       75% { transform: translateX(-3px); }
     }
 
+
+    .opponent-lock {
+      margin-top: 10px;
+      border-radius: 14px;
+      background: #fff7ed;
+      color: #9a3412;
+      border: 1px solid #fed7aa;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      display: none;
+    }
+    .opponent-lock.show { display: block; }
+    .suggestion.used {
+      opacity: .45;
+      cursor: not-allowed;
+      background: #f8fafc;
+    }
+    .suggestion .used-badge {
+      float: right;
+      font-size: 11px;
+      color: #991b1b;
+      font-weight: 900;
+    }
+    .ready-flash {
+      position: fixed;
+      inset: 0;
+      z-index: 10001;
+      background: rgba(15,23,42,.58);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .ready-flash.show { display: flex; }
+    .ready-card {
+      background: #fff;
+      border-radius: 28px;
+      padding: 28px;
+      width: min(420px,100%);
+      text-align: center;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-lg);
+      animation: readyPop .28s ease-out;
+    }
+    .ready-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 14px;
+      background: #ecfdf5;
+      color: #047857;
+      font-size: 32px;
+    }
+    @keyframes readyPop {
+      from { transform: scale(.94); opacity: .6; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
     .player-name-input {
       border-radius: var(--radius-md);
       border: 1px solid var(--border-dark);
@@ -678,6 +802,7 @@
           </div>
           <div id="msg" class="message">Oda oluştur veya koda katıl.</div>
           <div id="typingPill" class="typing-pill"><i class="bi bi-pencil-square"></i><span id="typingText">Rakip yazıyor</span><span class="typing-dots"></span></div>
+          <div id="opponentLock" class="opponent-lock"></div>
 
           <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top action-row">
             <button class="btn btn-dark fw-bold rounded-pill px-4" onclick="shuffleBoard()"><i class="bi bi-shuffle me-1"></i> Karıştır</button>
@@ -717,12 +842,20 @@
     </div>
   </div>
 
+  <div class="ready-flash" id="readyFlash">
+    <div class="ready-card">
+      <div class="ready-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+      <h2 class="h4 fw-bold mb-2">Maç Hazır</h2>
+      <div class="text-muted fw-semibold" id="readyText">İki oyuncu bağlandı.</div>
+    </div>
+  </div>
+
   <div class="end-modal-backdrop" id="endModal">
     <div class="end-modal">
       <div class="end-modal-icon"><i class="bi bi-trophy-fill"></i></div>
       <h2 class="h4 fw-black fw-bold mb-2" id="endTitle">Oyun Bitti</h2>
       <div class="text-muted fw-semibold mb-4" id="endSub">Yeni tablo ile devam edebilirsin.</div>
-      <button class="btn btn-primary fw-bold w-100 mb-2" onclick="closeEndModal(); newRound();">Yeni Tablo</button>
+      <button class="btn btn-primary fw-bold w-100 mb-2" id="endPrimaryBtn" onclick="handleEndPrimary()">Devam</button>
       <button class="btn btn-outline-secondary fw-bold w-100" onclick="closeEndModal()">Kapat</button>
     </div>
   </div>
@@ -732,12 +865,13 @@
 const SUPABASE_URL="https://rqaiqaglttvmtiqtvlcj.supabase.co";
 const SUPABASE_KEY="sb_publishable_KYfl4P83lfv9ltr-1QmIXw_wQfsP-GM";
 const DATA_FILE="turkiye_grid_data_optimized.json";
+const MATCH_TARGET_SCORE=3;
 
 let sb=null, players=[], allTeams=[], teamFreq=new Map(), playerByNorm=new Map(), teamPlayers=new Map(), playerSearch=[], answerCache=new Map();
 let dataReady=false, submitting=false, selectedPlayerName="", selectedPlayerObj=null, lastSuggestionPickAt=0;
 let mode="local", difficulty="easy", room=null, channel=null, selected=null;
 let myId=localStorage.getItem("tx_player_id")||crypto.randomUUID(), mySide=null, lastRoomCode=localStorage.getItem("tx_last_room_code")||"", myDisplayName=localStorage.getItem("tx_player_name")||"";
-let typingTimer=null, typingClearTimer=null, lastTypingUpdate=0, lastShownWinnerKey="";
+let typingTimer=null, typingClearTimer=null, lastTypingUpdate=0, lastShownWinnerKey="", lastReadyRoomKey="", lastConnectedState=false;
 let lastBoardStateKey="", animatedCellKey="", shakeCellKey="";
 let lastBoardSignature="";
 localStorage.setItem("tx_player_id",myId);
@@ -1099,6 +1233,63 @@ function onPlayerInput(){
   typingTimer=setTimeout(()=>setTyping(false),1800);
 }
 
+function isUsedName(name){
+  return usedPlayerNames().has(norm(name));
+}
+
+function showReadyFlash(){
+  if(!room || !room.host_id || !room.guest_id) return;
+  const key=(room.room_code||"")+"-"+room.host_id+"-"+room.guest_id;
+  if(lastReadyRoomKey===key) return;
+  lastReadyRoomKey=key;
+  const flash=document.getElementById("readyFlash");
+  const text=document.getElementById("readyText");
+  if(text) text.textContent=hostLabel()+" vs "+guestLabel();
+  if(flash){
+    flash.classList.add("show");
+    setTimeout(()=>flash.classList.remove("show"),1300);
+  }
+}
+
+function updateOpponentLock(){
+  const el=document.getElementById("opponentLock");
+  if(!el || !room){ if(el) el.classList.remove("show"); return; }
+  const oppSelected = room.selected_side && room.selected_side!==mySide && room.selected_row!==null && room.selected_col!==null && room.selected_row!==undefined && room.selected_col!==undefined;
+  if(oppSelected && room.rows && room.cols){
+    const r=room.selected_row, c=room.selected_col;
+    const rowTeam=room.rows[r]||"-";
+    const colTeam=room.cols[c]||"-";
+    el.textContent=opponentLabel()+" düşünüyor: "+rowTeam+" × "+colTeam;
+    el.classList.add("show");
+  }else{
+    el.classList.remove("show");
+  }
+}
+
+async function broadcastSelectedCell(r,c){
+  if(!room || !sb || !mySide) return;
+  try{
+    await sb.from("rooms").update({
+      selected_side: mySide,
+      selected_row: r,
+      selected_col: c,
+      selected_at: new Date().toISOString()
+    }).eq("room_code",room.room_code);
+  }catch(e){}
+}
+
+async function clearSelectedCellBroadcast(){
+  if(!room || !sb || !mySide) return;
+  try{
+    await sb.from("rooms").update({
+      selected_side: null,
+      selected_row: null,
+      selected_col: null,
+      selected_at: null
+    }).eq("room_code",room.room_code);
+  }catch(e){}
+}
+
 function updateTypingIndicator(){
   const pill=document.getElementById("typingPill");
   const text=document.getElementById("typingText");
@@ -1112,15 +1303,79 @@ function updateTypingIndicator(){
   }
 }
 
+function isMatchOver(){
+  return room && ((room.score_x||0)>=MATCH_TARGET_SCORE || (room.score_o||0)>=MATCH_TARGET_SCORE);
+}
+
+function matchWinnerSide(){
+  if(!room)return null;
+  if((room.score_x||0)>=MATCH_TARGET_SCORE)return "X";
+  if((room.score_o||0)>=MATCH_TARGET_SCORE)return "O";
+  return null;
+}
+
+function matchWinnerName(){
+  const side=matchWinnerSide();
+  if(side==="X")return hostLabel();
+  if(side==="O")return guestLabel();
+  return "";
+}
+
 function showEndModal(){
   const modal=document.getElementById("endModal");
-  if(!modal || !room?.winner) return;
+  if(!modal || !room) return;
   const title=document.getElementById("endTitle");
   const sub=document.getElementById("endSub");
-  const winnerName=room.winner==="X" ? hostLabel() : guestLabel();
-  title.textContent = (room.winner===mySide ? "Kazandın!" : winnerName+" kazandı");
-  sub.textContent = "Yeni tablo ile rövanş oynayabilirsiniz.";
+  const primary=document.getElementById("endPrimaryBtn");
+
+  if(isMatchOver()){
+    const winnerName=matchWinnerName();
+    title.textContent = matchWinnerSide()===mySide ? "Maçı kazandın!" : winnerName+" maçı kazandı";
+    sub.textContent = "Final skor: "+hostLabel()+" "+(room.score_x||0)+" - "+(room.score_o||0)+" "+guestLabel();
+    if(primary) primary.textContent="Yeni Maç";
+  }else if(room.winner){
+    const winnerName=room.winner==="X" ? hostLabel() : guestLabel();
+    title.textContent = (room.winner===mySide ? "Raundu kazandın!" : winnerName+" raundu kazandı");
+    sub.textContent = "Skor: "+hostLabel()+" "+(room.score_x||0)+" - "+(room.score_o||0)+" "+guestLabel()+" · Hedef skor "+MATCH_TARGET_SCORE;
+    if(primary) primary.textContent="Yeni Tablo";
+  }else{
+    return;
+  }
+
   modal.classList.add("show");
+}
+
+async function handleEndPrimary(){
+  closeEndModal();
+  if(isMatchOver()) await newMatch();
+  else await newRound();
+}
+
+async function newMatch(){
+  if(!room)return msg("Oda yok.","bad");
+  if(mySide!=="X")return msg("Yeni maçı oda sahibi başlatabilir.","bad");
+  if(!dataReady)return msg("Veri hazır değil.","bad");
+  const b=makeBoard();
+  await updateRoom({
+    rows:b.rows,
+    cols:b.cols,
+    board:[[null,null,null],[null,null,null],[null,null,null]],
+    turn:"X",
+    winner:null,
+    score_x:0,
+    score_o:0,
+    status:"playing",
+    mode,
+    difficulty,
+    selected_side:null,
+    selected_row:null,
+    selected_col:null,
+    selected_at:null,
+    typing_side:null,
+    typing_at:null
+  });
+  selected=null;
+  msg("Yeni maç başladı.","ok");
 }
 
 function closeEndModal(){
@@ -1137,7 +1392,7 @@ async function createRoom(){
     msg("Oda oluşturuluyor...");
     status("Oda oluşturuluyor...");
     const code=roomCode(),b=makeBoard();
-    const obj={room_code:code,host_id:myId,host_name:currentName(),status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0,winner:null,typing_side:null,typing_at:null};
+    const obj={room_code:code,host_id:myId,host_name:currentName(),status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0,winner:null,typing_side:null,typing_at:null,selected_side:null,selected_row:null,selected_col:null,selected_at:null};
     const {data,error}=await sb.from("rooms").insert(obj).select().single();
     if(error){msg(error.message,"bad");return;}
     room=data;mySide="X";lastRoomCode=code;localStorage.setItem("tx_last_room_code",code);subscribeRoom(code);msg("Oda kodu: "+code,"ok");render();
@@ -1242,6 +1497,7 @@ async function shuffleBoard(){
   const btn = event?.currentTarget;
   if(!room)return msg("Önce oda oluştur veya katıl.","bad");
   if(mySide!=="X")return msg("Eşleşmeleri sadece oda sahibi değiştirebilir.","bad");
+  if(isMatchOver())return msg("Maç bitti. Yeni Maç butonunu kullan.","bad");
   if(!dataReady)return msg("Veri hazır değil.","bad");
   try{
     setBusy(btn,true,"Hazırlanıyor");
@@ -1250,7 +1506,7 @@ async function shuffleBoard(){
     const before=boardSignature(room.rows||[],room.cols||[]);
     const b=makeBoard();
     const after=boardSignature(b.rows,b.cols);
-    await updateRoom({rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",winner:null,status:"playing",mode,difficulty});
+    await updateRoom({rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",winner:null,status:"playing",mode,difficulty,selected_side:null,selected_row:null,selected_col:null,selected_at:null,typing_side:null,typing_at:null});
     selected=null;
     toast(after===before?"Tablo yenilendi":"Eşleşmeler karıştırıldı");
   }finally{
@@ -1268,7 +1524,8 @@ async function passTurn(){
   const btn = event?.currentTarget;
   if(submitting)return;
   if(!room)return msg("Oda yok.","bad");
-  if(room.winner)return msg("Oyun bitti. Yeni tablo aç.","bad");
+  if(isMatchOver())return msg("Maç bitti. Yeni maç başlat.","bad");
+  if(room.winner)return msg("Raund bitti. Yeni tablo aç.","bad");
   if(!room.host_id || !room.guest_id)return msg("Diğer oyuncu bekleniyor.","bad");
   if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
   try{
@@ -1287,7 +1544,7 @@ async function passTurn(){
     selected=null;
     selected=null;
     await setTyping(false);
-    await updateRoom({turn:next, typing_side:null, typing_at:null});
+    await updateRoom({turn:next, typing_side:null, typing_at:null, selected_side:null, selected_row:null, selected_col:null, selected_at:null});
     msg("Pas geçildi. Sıra rakipte.");
   }finally{
     submitting=false;
@@ -1320,7 +1577,8 @@ async function submitGuess(){
   if(submitting)return;
   if(!room)return msg("Oda yok.","bad");
   if(!dataReady)return msg("Veri hazır değil, bekle.","bad");
-  if(room.winner)return msg("Oyun bitti. Yeni tablo aç.","bad");
+  if(isMatchOver())return msg("Maç bitti. Yeni maç başlat.","bad");
+  if(room.winner)return msg("Raund bitti. Yeni tablo aç.","bad");
   if(!room.host_id || !room.guest_id)return msg("Diğer oyuncu bekleniyor.","bad");
   if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
   if(!selected)return msg("Önce kare seç. Seçilen kare mavi kilitlenir.","bad");
@@ -1352,7 +1610,7 @@ async function submitGuess(){
 
   const b=JSON.parse(JSON.stringify(room.board));
   const next=mySide==="X"?"O":"X";
-  const fields={turn:next, typing_side:null, typing_at:null};
+  const fields={turn:next, typing_side:null, typing_at:null, selected_side:null, selected_row:null, selected_col:null, selected_at:null};
 
   if(ok){
     b[moveCell.r][moveCell.c]={mark:mySide,player:p.name};
@@ -1408,7 +1666,7 @@ async function submitGuess(){
   }
 }
 function canPlay(){
-  return dataReady && room && !room.winner && mySide && room.turn===mySide && room.status!=="closed" && room.host_id && room.guest_id && !submitting;
+  return dataReady && room && !room.winner && !isMatchOver() && mySide && room.turn===mySide && room.status!=="closed" && room.host_id && room.guest_id && !submitting;
 }
 function selectCell(r,c){
   if(!room||room.board[r][c]||room.winner)return;
@@ -1422,6 +1680,7 @@ function selectCell(r,c){
     return;
   }
   selected={r,c};
+  broadcastSelectedCell(r,c);
   msg("Kare kilitlendi: "+room.rows[r]+" × "+room.cols[c]+". Oyuncuyu seçip Hamle Yap'a bas.","ok");
   render();
   setTimeout(()=>document.getElementById("playerInput")?.focus(),50);
@@ -1547,12 +1806,22 @@ function updateLiveBanner(){
     return;
   }
 
+  if(isMatchOver()){
+    const mw=matchWinnerSide();
+    banner.classList.add(mw===mySide ? "my-turn" : "wait-turn");
+    title.textContent = mw===mySide ? "Maçı kazandın" : matchWinnerName()+" maçı kazandı";
+    sub.textContent = "Final skor: "+(room.score_x||0)+" - "+(room.score_o||0)+". Yeni maç başlatılabilir.";
+    pill.textContent = "Maç bitti";
+    if(online) online.textContent="Maç bitti";
+    return;
+  }
+
   if(room.winner){
     banner.classList.add(room.winner===mySide ? "my-turn" : "wait-turn");
-    title.textContent = room.winner===mySide ? "Kazandın" : "Rakip kazandı";
-    sub.textContent = "Yeni tablo için oda sahibi karıştırabilir.";
-    pill.textContent = "Oyun bitti";
-    if(online) online.textContent="Oyun bitti";
+    title.textContent = room.winner===mySide ? "Raundu kazandın" : "Rakip raundu kazandı";
+    sub.textContent = "Skor "+(room.score_x||0)+" - "+(room.score_o||0)+". Yeni tablo ile devam.";
+    pill.textContent = "Raund bitti";
+    if(online) online.textContent="Raund bitti";
     return;
   }
 
@@ -1612,8 +1881,16 @@ function render(){
   }
   document.getElementById("grid").innerHTML=h;
   updateTypingIndicator();
-  if(room?.winner){
-    const key=(room.room_code||"")+"-"+room.winner+"-"+(room.score_x||0)+"-"+(room.score_o||0);
+  updateOpponentLock();
+  if(room && room.host_id && room.guest_id && !lastConnectedState){
+    lastConnectedState=true;
+    showReadyFlash();
+  }
+  if(room && (!room.host_id || !room.guest_id)){
+    lastConnectedState=false;
+  }
+  if(room?.winner || isMatchOver()){
+    const key=(room.room_code||"")+"-"+(room.winner||"match")+"-"+(room.score_x||0)+"-"+(room.score_o||0);
     if(key!==lastShownWinnerKey){
       lastShownWinnerKey=key;
       setTimeout(showEndModal,180);
@@ -1631,6 +1908,8 @@ async function leaveRoom(){
   try{
     setBusy(btn,true,"Çıkılıyor");
     const code=room.room_code;
+    await setTyping(false);
+    await clearSelectedCellBroadcast();
     const isHost = mySide==="X" && room.host_id===myId;
     const isGuest = mySide==="O" && room.guest_id===myId;
 
