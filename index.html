@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Turkey XoX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Turkey XoX v4</title>
+  <title>Turkey XoX v4.1</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -200,6 +200,21 @@
       font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg); display: none; z-index: 9999;
     }
 
+
+    .btn.is-loading { pointer-events: none; opacity: .72; }
+    .btn.is-loading::after {
+      content: "";
+      width: 14px; height: 14px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 8px;
+      vertical-align: -2px;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -351,6 +366,29 @@ function msg(t,type=""){const el=document.getElementById("msg");el.textContent=t
 function status(t){document.getElementById("statusText").textContent=t}
 function toast(t){const el=document.getElementById("toast");el.textContent=t;el.style.display="block";setTimeout(()=>el.style.display="none",1600)}
 function hideSuggest(){document.getElementById("suggestions").style.display="none"}
+
+function setBusy(buttonOrSelector, busy, text){
+  const btn = typeof buttonOrSelector==="string" ? document.querySelector(buttonOrSelector) : buttonOrSelector;
+  if(!btn) return;
+  if(busy){
+    btn.dataset.oldText = btn.innerHTML;
+    if(text) btn.innerHTML = text;
+    btn.classList.add("is-loading");
+    btn.disabled = true;
+  }else{
+    if(btn.dataset.oldText) btn.innerHTML = btn.dataset.oldText;
+    btn.classList.remove("is-loading");
+    btn.disabled = false;
+  }
+}
+
+function setAllGameButtons(disabled){
+  document.querySelectorAll("button").forEach(b=>{
+    if(disabled) b.dataset.prevDisabled = b.disabled ? "1" : "0";
+    if(disabled) b.disabled = true;
+    else if(b.dataset.prevDisabled==="0") b.disabled = false;
+  });
+}
 
 function initSupabase(){
   if(!SUPABASE_URL||!SUPABASE_KEY||SUPABASE_KEY.includes("BURAYA_")){
@@ -550,27 +588,51 @@ function makeBoard(){
 function roomCode(){return Math.floor(100000+Math.random()*900000).toString()}
 
 async function createRoom(){
+  const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
   if(!players.length)return msg("Veri henüz yüklenmedi. Biraz bekle.","bad");
-  const code=roomCode(),b=makeBoard();
-  const obj={room_code:code,host_id:myId,status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0,winner:null};
-  const {data,error}=await sb.from("rooms").insert(obj).select().single();
-  if(error)return msg(error.message,"bad");
-  room=data;mySide="X";subscribeRoom(code);msg("Oda kodu: "+code,"ok");render();
+  try{
+    setBusy(btn,true,"Oda hazırlanıyor");
+    msg("Oda oluşturuluyor...");
+    status("Oda oluşturuluyor...");
+    const code=roomCode(),b=makeBoard();
+    const obj={room_code:code,host_id:myId,status:"waiting",mode,difficulty,rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",score_x:0,score_o:0,winner:null};
+    const {data,error}=await sb.from("rooms").insert(obj).select().single();
+    if(error){msg(error.message,"bad");return;}
+    room=data;mySide="X";subscribeRoom(code);msg("Oda kodu: "+code,"ok");render();
+  }finally{
+    setBusy(btn,false);
+  }
 }
 async function joinRoom(){
+  const btn = event?.currentTarget;
   if(!sb)return msg("Canlı bağlantı hazır değil.","bad");
   const code=document.getElementById("joinCode").value.trim();
   if(!code)return msg("Oda kodu yaz.","bad");
-  const q=await sb.from("rooms").select("*").eq("room_code",code).single();
-  if(q.error)return msg("Oda bulunamadı.","bad");
-  const u=await sb.from("rooms").update({guest_id:myId,status:"playing"}).eq("room_code",code).select().single();
-  if(u.error)return msg(u.error.message,"bad");
-  room=u.data;mySide="O";mode=room.mode||mode;difficulty=room.difficulty||difficulty;syncButtons();subscribeRoom(code);msg("Odaya katıldın.","ok");render();
+  try{
+    setBusy(btn,true,"Katılıyor");
+    msg("Odaya katılınıyor...");
+    status("Odaya katılınıyor...");
+    const q=await sb.from("rooms").select("*").eq("room_code",code).single();
+    if(q.error){msg("Oda bulunamadı.","bad");return;}
+    const u=await sb.from("rooms").update({guest_id:myId,status:"playing"}).eq("room_code",code).select().single();
+    if(u.error){msg(u.error.message,"bad");return;}
+    room=u.data;mySide="O";mode=room.mode||mode;difficulty=room.difficulty||difficulty;syncButtons();subscribeRoom(code);msg("Odaya katıldın.","ok");render();
+  }finally{
+    setBusy(btn,false);
+  }
 }
 function subscribeRoom(code){
   if(channel)sb.removeChannel(channel);
-  channel=sb.channel("room-"+code).on("postgres_changes",{event:"UPDATE",schema:"public",table:"rooms",filter:"room_code=eq."+code},p=>{room=p.new;mode=room.mode||mode;difficulty=room.difficulty||difficulty;syncButtons();render()}).subscribe();
+  channel=sb.channel("room-"+code).on("postgres_changes",{event:"UPDATE",schema:"public",table:"rooms",filter:"room_code=eq."+code},p=>{
+    room=p.new;
+    mode=room.mode||mode;
+    difficulty=room.difficulty||difficulty;
+    syncButtons();
+    render();
+    if(room.status==="closed" || !room.host_id) msg("Oda sahibi oyundan çıktı. Yeni oda oluşturulmalı.","bad");
+    else if(mySide==="X" && !room.guest_id) msg("Rakip odadan çıktı. Yeni rakip bekleniyor.");
+  }).subscribe();
 }
 async function updateRoom(fields){
   const {data,error}=await sb.from("rooms").update(fields).eq("room_code",room.room_code).select().single();
@@ -578,14 +640,23 @@ async function updateRoom(fields){
   room=data;render();
 }
 async function shuffleBoard(){
+  const btn = event?.currentTarget;
   if(!room)return msg("Önce oda oluştur veya katıl.","bad");
+  if(mySide!=="X")return msg("Eşleşmeleri sadece oda sahibi değiştirebilir.","bad");
   if(!players.length)return msg("Veri hazır değil.","bad");
-  const before=boardSignature(room.rows||[],room.cols||[]);
-  const b=makeBoard();
-  const after=boardSignature(b.rows,b.cols);
-  await updateRoom({rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",winner:null,status:"playing",mode,difficulty});
-  selected=null;
-  toast(after===before?"Tablo yenilendi":"Eşleşmeler karıştırıldı");
+  try{
+    setBusy(btn,true,"Karıştırılıyor");
+    msg("Yeni eşleşmeler hazırlanıyor...");
+    status("Yeni eşleşmeler hazırlanıyor...");
+    const before=boardSignature(room.rows||[],room.cols||[]);
+    const b=makeBoard();
+    const after=boardSignature(b.rows,b.cols);
+    await updateRoom({rows:b.rows,cols:b.cols,board:[[null,null,null],[null,null,null],[null,null,null]],turn:"X",winner:null,status:"playing",mode,difficulty});
+    selected=null;
+    toast(after===before?"Tablo yenilendi":"Eşleşmeler karıştırıldı");
+  }finally{
+    setBusy(btn,false);
+  }
 }
 async function newRound(){await shuffleBoard()}
 
@@ -595,6 +666,7 @@ function winner(b){
   return null;
 }
 async function submitGuess(){
+  const btn = event?.currentTarget;
   if(!room)return msg("Oda yok.","bad");
   if(room.winner)return msg("Oyun bitti. Yeni tablo aç.","bad");
   if(room.turn!==mySide)return msg("Sıra sende değil.","bad");
@@ -602,23 +674,29 @@ async function submitGuess(){
   if(room.board[selected.r][selected.c])return msg("Bu kare dolu.","bad");
   const name=document.getElementById("playerInput").value.trim();
   if(!name)return msg("Oyuncu yaz.","bad");
-  const p=playerByNorm.get(norm(name));
-  const ans=answers(room.rows[selected.r],room.cols[selected.c]);
-  const ok=p&&ans.some(x=>norm(x.name)===norm(p.name));
-  const b=room.board,next=mySide==="X"?"O":"X";
-  const fields={turn:next};
-  if(ok){
-    b[selected.r][selected.c]={mark:mySide,player:p.name};
-    const w=winner(b);
-    fields.board=b;
-    if(w){fields.winner=w;fields.status="finished";if(w==="X")fields.score_x=(room.score_x||0)+1;else fields.score_o=(room.score_o||0)+1}
-    msg("Doğru.","ok");
-  }else{
-    msg("Yanlış. Sıra geçti.","bad");
+  try{
+    setBusy(btn,true,"Kontrol ediliyor");
+    msg("Cevap kontrol ediliyor...");
+    const p=playerByNorm.get(norm(name));
+    const ans=answers(room.rows[selected.r],room.cols[selected.c]);
+    const ok=p&&ans.some(x=>norm(x.name)===norm(p.name));
+    const b=room.board,next=mySide==="X"?"O":"X";
+    const fields={turn:next};
+    if(ok){
+      b[selected.r][selected.c]={mark:mySide,player:p.name};
+      const w=winner(b);
+      fields.board=b;
+      if(w){fields.winner=w;fields.status="finished";if(w==="X")fields.score_x=(room.score_x||0)+1;else fields.score_o=(room.score_o||0)+1}
+      msg("Doğru.","ok");
+    }else{
+      msg("Yanlış. Sıra geçti.","bad");
+    }
+    await sb.from("moves").insert({room_code:room.room_code,player_side:mySide,row_index:selected.r,col_index:selected.c,player_name:name,is_correct:!!ok});
+    selected=null;document.getElementById("playerInput").value="";hideSuggest();
+    await updateRoom(fields);
+  }finally{
+    setBusy(btn,false);
   }
-  await sb.from("moves").insert({room_code:room.room_code,player_side:mySide,row_index:selected.r,col_index:selected.c,player_name:name,is_correct:!!ok});
-  selected=null;document.getElementById("playerInput").value="";hideSuggest();
-  await updateRoom(fields);
 }
 function selectCell(r,c){if(!room||room.board[r][c]||room.winner)return;selected={r,c};render()}
 function setMode(m){mode=m;syncButtons();if(room&&mySide==="X")shuffleBoard()}
@@ -650,7 +728,12 @@ function render(){
   document.getElementById("sideText").textContent=mySide||"-";
   document.getElementById("turnText").textContent=room?.winner?("Kazanan "+room.winner):(room?.turn||"-");
   document.getElementById("scoreText").textContent=(room?.score_x||0)+" - "+(room?.score_o||0);
-  const connected=room?((room.guest_id&&room.host_id)?"İki oyuncu bağlı.":"Oda açık, rakip bekleniyor."):"Oda yok.";
+  let connected="Oda yok.";
+  if(room){
+    if(room.status==="closed" || !room.host_id) connected="Oda sahibi çıktı. Yeni oda oluştur.";
+    else if(room.guest_id&&room.host_id) connected="İki oyuncu bağlı.";
+    else connected="Oda açık, rakip bekleniyor.";
+  }
   status(players.length?connected:"Veri hazırlanıyor...");
 
   let h="<tr><th class='corner'></th>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr>";
@@ -669,7 +752,41 @@ function render(){
   }
   document.getElementById("grid").innerHTML=h;
 }
-function leaveRoom(){room=null;mySide=null;selected=null;if(channel)sb.removeChannel(channel);render();msg("Odadan çıktın.")}
+async function leaveRoom(){
+  const btn = event?.currentTarget;
+  if(!room){
+    mySide=null; selected=null; render(); msg("Odadan çıktın."); return;
+  }
+  try{
+    setBusy(btn,true,"Çıkılıyor");
+    const code=room.room_code;
+    const isHost = mySide==="X" && room.host_id===myId;
+    const isGuest = mySide==="O" && room.guest_id===myId;
+
+    if(sb){
+      if(isHost){
+        await sb.from("rooms").update({
+          host_id:null,
+          status:"closed",
+          winner:null
+        }).eq("room_code",code);
+      }else if(isGuest){
+        await sb.from("rooms").update({
+          guest_id:null,
+          status:"waiting",
+          turn:"X"
+        }).eq("room_code",code);
+      }
+    }
+
+    if(channel) sb.removeChannel(channel);
+    room=null; mySide=null; selected=null;
+    render();
+    msg("Odadan çıktın.");
+  }finally{
+    setBusy(btn,false);
+  }
+}
 function preventGesture(){
   // Sadece iOS pinch gesture engellenir. Touchend engellenmez;
   // böylece scroll, kopyala-yapıştır, seçim ve normal dokunma bozulmaz.
@@ -677,6 +794,16 @@ function preventGesture(){
   document.addEventListener("gesturechange",e=>e.preventDefault());
   document.addEventListener("gestureend",e=>e.preventDefault());
 }
+window.addEventListener("beforeunload",()=>{
+  if(!room || !sb) return;
+  try{
+    const payload = mySide==="O"
+      ? {guest_id:null,status:"waiting",turn:"X"}
+      : {host_id:null,status:"closed"};
+    sb.from("rooms").update(payload).eq("room_code",room.room_code).then(()=>{});
+  }catch(e){}
+});
+
 preventGesture();
 initSupabase();
 loadData();
